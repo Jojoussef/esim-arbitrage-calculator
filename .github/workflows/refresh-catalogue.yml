@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Build site
         run: node scripts/build.mjs
@@ -53,6 +53,28 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Publish to the gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: .publish
+          persist-credentials: true
+          fetch-depth: 1
+
+      - name: Copy the built site over the published branch
+        run: |
+          set -euo pipefail
+          find .publish -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -R dist/. .publish/
+          cd .publish
+          git add -A
+          if git diff --cached --quiet; then
+            echo "no changes to publish"
+          else
+            git -c user.name="github-actions[bot]" \
+                -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+                commit --quiet -m "Refresh catalogue (${{ github.sha }})"
+            git push origin HEAD:gh-pages
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
