@@ -42,31 +42,66 @@ DNS change on the apex domain, and it affects the pre-existing site at
 
 ### How to fix it
 
-In the Namecheap DNS panel for `youssef-benatti.me`:
+**The domain is registered at Namecheap** (IANA 1068, `whois.namecheap.com`,
+nameservers `dns1/dns2.registrar-servers.com`), so the fix belongs in the
+Namecheap DNS panel for `youssef-benatti.me`.
 
-1. Delete the `A @ 159.198.67.228` record (the parking record).
+#### Option A — by hand (2 minutes)
+
+1. Delete the parking `A @ 159.198.67.228` record.
 2. Add GitHub Pages' records for an apex domain:
    - `A @ 185.199.108.153`
+   - `A @ 185.199.109.153`
    - `A @ 185.199.110.153`
    - `A @ 185.199.111.153`
-   - `A @ 185.199.109.153`
-3. For `www`, use `CNAME www @ jojoussef.github.io`.
+3. For `www`, add `CNAME www @ youssef-benatti.me`.
 4. Leave the `CNAME` file at the root of `Jojoussef/Jojoussef.github.io`
    containing `youssef-benatti.me` (it is already there).
-5. Wait for the A records to propagate, then run:
+5. Verify:
 
    ```bash
    node scripts/check-dns.mjs
    ```
 
-6. Once the certificate exists, turn on enforcement:
+#### Option B — with the Namecheap API
 
-   ```bash
-   gh api --method PUT repos/Jojoussef/Jojoussef.github.io/pages \
-     --input - <<'JSON'
-   {"https_enforced": true}
-   JSON
-   ```
+Enable API access in the Namecheap account (Advanced Settings → API Access),
+then:
+
+```bash
+export NAMECHEAP_API_USER='your-api-user'
+export NAMECHEAP_API_KEY='your-api-key'
+export NAMECHEAP_CLIENT_IP='<the account IP whitelist>'
+
+node scripts/setup-dns.mjs     # writes the A + CNAME records
+node scripts/check-dns.mjs     # verify
+```
+
+`setup-dns.mjs` also supports the Spaceship API if the domain is ever
+moved there:
+
+```bash
+export SPACESHIP_API_KEY='...'
+export SPACESHIP_API_SECRET='...'
+node scripts/setup-dns.mjs
+```
+
+#### Enabling HTTPS
+
+Once the DNS points at GitHub Pages, GitHub can finally issue a certificate
+for the custom domain. Then turn on enforcement:
+
+```bash
+gh api --method PUT repos/Jojoussef/Jojoussef.github.io/pages \
+  --input - <<'JSON'
+{"https_enforced": true}
+JSON
+```
+
+Until that succeeds, GitHub answers with
+`{"message":"The certificate does not exist yet"}` — that is the expected
+response while the DNS is still parked.
+
 
 ### Verify at any time
 
