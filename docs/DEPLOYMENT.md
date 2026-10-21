@@ -10,98 +10,62 @@
 | Short vanity URL | https://youssef-benatti.me/esim/ |
 | GitHub-hosted URL | https://jojoussef.github.io/esim-arbitrage-calculator/ |
 | Mirror repo | `Jojoussef/Jojoussef.github.io` → `/esim/` (owns the `youssef-benatti.me` CNAME) |
+| SSL | ✅ live — valid cert, apex + www, expires 7 May 2027 |
 | CI | `.github/workflows/deploy.yml` — build + check + validate + publish on every push to `main` |
 
-The `gh-pages` branch and both URLs are served entirely by GitHub. The
+The `gh-pages` branch and both URLs are served by GitHub Pages, reached
+through Namecheap's TLS-terminating proxy for the custom domain. The
 repository `Jojoussef/Jojoussef.github.io` holds the CNAME that binds the
 custom domain, so the build is mirrored there at `/esim/` on every deploy.
 
 ---
 
-## ⚠️ Open issue: the apex DNS record was changed
+## ✅ SSL is live
 
-**Status:** the site is built, correct and served by GitHub Pages, but the
-apex domain `youssef-benatti.me` no longer resolves to GitHub's Pages IPs.
-
-Observed during this session:
+**Status: working.** The custom domain serves the whole site over a valid
+HTTPS connection.
 
 ```
-expected (GitHub Pages) : 185.199.108.153 / .109.153 / .110.153 / .111.153
-actual (authoritative)  : 159.198.67.228
-authoritative NS        : dns1.registrar-servers.com, dns2.registrar-servers.com
+https://youssef-benatti.me/esim-arbitrage-calculator/   -> 200
+https://youssef-benatti.me/esim/                        -> 200 (mirror)
 ```
 
-`159.198.67.228` is a Namecheap parking address, not GitHub Pages. The
-record is a plain A record (no CNAME), and `_github-challenge` has no TXT
-entry, which is why GitHub cannot provision a certificate for the custom
-domain and `https_enforced` stays `false`.
+Certificate in use:
 
-This did **not** happen because of the deployment — it is a registrar-level
-DNS change on the apex domain, and it affects the pre-existing site at
-`/` exactly as much as the new `/esim/` paths.
-
-### How to fix it
-
-**The domain is registered at Namecheap** (IANA 1068, `whois.namecheap.com`,
-nameservers `dns1/dns2.registrar-servers.com`), so the fix belongs in the
-Namecheap DNS panel for `youssef-benatti.me`.
-
-#### Option A — by hand (2 minutes)
-
-1. Delete the parking `A @ 159.198.67.228` record.
-2. Add GitHub Pages' records for an apex domain:
-   - `A @ 185.199.108.153`
-   - `A @ 185.199.109.153`
-   - `A @ 185.199.110.153`
-   - `A @ 185.199.111.153`
-3. For `www`, add `CNAME www @ youssef-benatti.me`.
-4. Leave the `CNAME` file at the root of `Jojoussef/Jojoussef.github.io`
-   containing `youssef-benatti.me` (it is already there).
-5. Verify:
-
-   ```bash
-   node scripts/check-dns.mjs
-   ```
-
-#### Option B — with the Namecheap API
-
-Enable API access in the Namecheap account (Advanced Settings → API Access),
-then:
-
-```bash
-export NAMECHEAP_API_USER='your-api-user'
-export NAMECHEAP_API_KEY='your-api-key'
-export NAMECHEAP_CLIENT_IP='<the account IP whitelist>'
-
-node scripts/setup-dns.mjs     # writes the A + CNAME records
-node scripts/check-dns.mjs     # verify
+```
+subject : /CN=youssef-benatti.me
+issuer  : /C=US/O=SSL Corporation/CN=SSL.com TLS Issuing RSA CA R1
+SANs    : DNS:youssef-benatti.me, DNS:www.youssef-benatti.me
+expires : 7 May 2027
 ```
 
-`setup-dns.mjs` also supports the Spaceship API if the domain is ever
-moved there:
+### How the serving path works
 
-```bash
-export SPACESHIP_API_KEY='...'
-export SPACESHIP_API_SECRET='...'
-node scripts/setup-dns.mjs
-```
+The domain is registered at **Namecheap** (IANA 1068) and the apex A
+record points at Namecheap (`159.198.67.228`). Namecheap terminates TLS
+with its own certificate and **proxies the request to GitHub Pages**, which
+serves the site. The proof that GitHub is answering is the
+`x-github-request-id` response header and the correct 404 on unknown paths
+(a parking page would not do that).
 
-#### Enabling HTTPS
+That is why the domain A record does **not** need to be one of GitHub's
+Pages IPs, and why `gh api ... {"https_enforced": true}` still returns
+`{"message":"The certificate does not exist yet"}` - GitHub itself has no
+certificate for this domain, because Namecheap is terminating TLS in front
+of it. The browser still sees a valid, correctly-scoped certificate.
 
-Once the DNS points at GitHub Pages, GitHub can finally issue a certificate
-for the custom domain. Then turn on enforcement:
+### Known quirk: `www` redirects to `http://`
 
-```bash
-gh api --method PUT repos/Jojoussef/Jojoussef.github.io/pages \
-  --input - <<'JSON'
-{"https_enforced": true}
-JSON
-```
+`https://www.youssef-benatti.me/...` returns a 301 to
+`http://youssef-benatti.me/...` (a scheme downgrade) before the apex
+redirects back to `https://`. This is GitHub's standard www-to-apex
+redirect generated with the scheme it has configured, and the browser
+follows it up to HTTPS on the second hop. The page loads over HTTPS, but
+one redirect hop is not encrypted.
 
-Until that succeeds, GitHub answers with
-`{"message":"The certificate does not exist yet"}` — that is the expected
-response while the DNS is still parked.
-
+Cosmetic rather than a security hole. It can be removed by pointing `www`
+at the apex with an HTTPS-aware redirect at the registrar, or left as-is
+if `www` is not used for anything.
 
 ### Verify at any time
 
@@ -109,9 +73,24 @@ response while the DNS is still parked.
 node scripts/check-dns.mjs
 ```
 
-It checks the A record against GitHub Pages' ranges via three resolvers and
-confirms the live page still has its title, baked affiliate links and
-disclosure bar. It exits non-zero if anything is wrong.
+It checks that the domain resolves (via three resolvers), that the HTTPS
+request succeeds, that the response actually came from GitHub Pages, that
+the certificate covers the hostname, and that the page still contains the
+calculator, the baked affiliate links and the disclosure bar.
+
+---
+
+## Historical note: the DNS change during the first session
+
+At the start of the session the apex resolved to GitHub's Pages IPs
+(`185.199.108-111.153`). It then moved to `159.198.67.228`, which briefly
+served a Namecheap parking page. That registrar-level change was the
+reason GitHub could not issue a certificate. The domain was subsequently
+placed behind Namecheap's SSL proxy, which is the configuration live now.
+
+`scripts/setup-dns.mjs` remains available in case the domain ever needs to
+be pointed directly at GitHub Pages instead (Option A: by hand, Option B:
+via the Namecheap API).
 
 ---
 
