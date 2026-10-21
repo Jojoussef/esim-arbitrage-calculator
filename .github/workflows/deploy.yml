@@ -60,8 +60,9 @@ jobs:
       # The build ran in a separate job, so the built site has to be pulled
       # back in from the artifact before it can be published.
       - name: Download the built site
-        uses: actions/download-pages-artifact@v4
+        uses: actions/download-artifact@v4
         with:
+          name: github-pages
           path: dist
 
       - name: Publish to the gh-pages branch
