@@ -34,9 +34,72 @@ does not require anyone's affiliate programme.
 
 ---
 
-## The three models
+## The four models
 
-### 1. Sponsorship — the primary engine
+### 0. Subscription — the only model that earns without anyone's approval
+
+This is the model that does not depend on a third party at all. A reader
+pays you directly, and you keep the whole amount.
+
+| Plan | Price | What it is |
+|---|---|---|
+| Free | $0 | The calculator, every destination, every currency, every trip length. No account, no cookie, no tracking. |
+| Pro | $7/mo or $59/yr | Price alerts, the flat clean data export, the pricing-error monitor as a live feed. |
+| Team | $29/mo or $249/yr | Everything in Pro, up to 5 seats, API access, priority support. |
+
+**The free tier stays completely free.** That is the whole trick. The
+calculator is the SEO asset and the referral asset — paywalling it would
+destroy both. What is paid for is the *work*, not the *data*:
+
+- being **told** when a price changes, before the public page is rebuilt
+- a **pre-built, flat, de-duplicated** export instead of a nested JSON file
+- the **error monitor as a feed**, not a number on a page
+
+> This matters: the catalogue is already served publicly at
+> `/data/catalog.json` because the free calculator is client-side. "Sell the
+> data file" is not a business — a subscriber could download it for free.
+> The subscription sells the labour.
+
+**Why it is the right first model:**
+
+- It **cannot be switched off** by a rejection, because there is no reviewer.
+- Recurring revenue from the **first** subscriber, not a per-click commission
+  that needs thousands of clicks.
+- The vendor outreach still works *on top* of it.
+
+**How it is built:**
+
+| Piece | Where |
+|---|---|
+| Plan config | `config/subscription.json` |
+| Entitlement signing + verification | `scripts/lib/entitlement.mjs` |
+| Entitlement tests (24 assertions) | `scripts/test-entitlement.mjs` |
+| The API Worker | `worker/index.js` |
+| Worker build (embeds the catalogue) | `scripts/build-worker.mjs` |
+| Database schema | `worker/schema.sql` |
+| Client session handling | `src/assets/subscription.js` |
+| The pricing page | `scripts/lib/pages-subscription.mjs` → `/pricing/` |
+
+**The infrastructure costs nothing at this scale:**
+
+- Cloudflare Workers free tier: 100,000 requests/day
+- KV free tier: 100,000 reads/day, 1,000 writes/day
+- D1 free tier: 5,000,000 rows read/day, 100,000 rows written/day
+
+At 100 subscribers, you are using well under 1% of the free tier.
+
+**Payment is via a Merchant of Record** — Lemon Squeezy (5% + 50¢) or
+Gumroad (10% + 50¢). They handle VAT and sales tax worldwide, which matters
+when you are a solo seller, and they both support recurring subscriptions.
+
+**To switch it on you need exactly one thing: a checkout URL.** Put it in
+`config/subscription.json` as `checkout_url`, then:
+
+```bash
+node scripts/build.mjs && node scripts/check.mjs && node scripts/validate.mjs
+```
+
+### 1. Sponsorship — the secondary engine
 
 A vendor pays a **flat monthly fee** for a clearly labelled placement.
 

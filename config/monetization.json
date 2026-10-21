@@ -76,6 +76,23 @@
       "client": "",
       "slots": []
     },
+    "subscription": {
+      "enabled": true,
+      "label": "Subscribe",
+      "blurb": "A free calculator for travellers, with a paid Pro tier for people who want to be told when prices move.",
+      "price_monthly": 7,
+      "price_yearly": 59,
+      "contact": "partnerships@youssef-benatti.me",
+      "free_tier": "The calculator, every destination, every currency, every trip length. No account, no cookie.",
+      "paid_tier": "Price alerts, the flat clean data export, and the pricing-error monitor as a live feed.",
+      "pricing_page": "/esim-arbitrage-calculator/pricing/",
+      "why_it_works": [
+        "It does not depend on an affiliate approval, so it cannot be switched off by a rejection.",
+        "The free tier stays completely free, so the SEO and referral value of the site is untouched.",
+        "It pays for the WORK (alerts, clean exports, monitoring) rather than for data that is already public.",
+        "Recurring revenue from the first subscriber, instead of a per-click commission that needs scale."
+      ]
+    },
     "data_license": {
       "enabled": false,
       "label": "Licence the dataset",

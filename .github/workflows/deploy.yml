@@ -35,6 +35,13 @@ jobs:
       - name: Build site
         run: node scripts/build.mjs
 
+      # The paywall is the only thing standing between the public and the
+      # paid data, so its signature scheme gets its own test run. A change
+      # to the entitlement format that breaks a signed token must fail CI,
+      # not the first paying subscriber.
+      - name: Test the entitlement scheme
+        run: node scripts/test-entitlement.mjs
+
       - name: Check monetisation & SEO invariants
         run: node scripts/check.mjs
 

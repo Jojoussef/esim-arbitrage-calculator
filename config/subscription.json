@@ -1,0 +1,110 @@
+{
+  "_comment": [
+    "Subscription model. The affiliate programmes rejected the publisher, so",
+    "this is the second revenue engine: a free public tier for everyone, and",
+    "a paid tier for people who want to act on the data.",
+    "",
+    "The paid tier is NOT a paywall around the calculator. The calculator",
+    "stays free for everyone - that is what makes the SEO work. What is",
+    "paid is the part that takes work to use:",
+    "",
+    "  - Trip alerts: get an email when a price changes for a destination",
+    "  - Watchlists: save destinations and get notified about them",
+    "  - The full data export: every price point, every carrier, every",
+    "    currency, as CSV/JSON",
+    "  - The pricing-error monitor: a feed of newly-found inversions",
+    "",
+    "Enforcement is server-side. The static site is public; the paid",
+    "features are served by a Cloudflare Worker that checks a signed",
+    "entitlement cookie against Cloudflare KV or D1. Nothing is hidden by",
+    "obfuscating the client - the premium DATA simply is not served",
+    "without a valid entitlement.",
+    "",
+    "Payment: use a Merchant of Record (Lemon Squeezy at 5% + 50c, or",
+    "Gumroad at 10% + 50c). They handle VAT and sales tax worldwide, which",
+    "matters when you are a solo seller. The provider's webhook grants the",
+    "entitlement; the Worker revokes it on cancellation."
+  ],
+  "enabled": true,
+  "provider": "lemonsqueezy",
+  "provider_webhook_secret_env": "LS_WEBHOOK_SECRET",
+  "provider_api_key_env": "LS_API_KEY",
+  "api_base_url": "https://esim-subscription.evilnode.workers.dev",
+  "_checkout_url_comment": [
+    "The checkout URL is the ONE thing this model still needs. Create a",
+    "Pro product and a Team product in your Lemon Squeezy (or Gumroad)",
+    "dashboard, copy the checkout links here, and the Subscribe buttons",
+    "start working.",
+    "",
+    "Until then the buttons point at this page, so a reader who clicks",
+    "'Subscribe' lands somewhere real rather than on a dead '#' link."
+  ],
+  "checkout_url": "https://youssef-benatti.me/esim-arbitrage-calculator/pricing/",
+  "checkout_urls": {
+    "pro": "https://youssef-benatti.me/esim-arbitrage-calculator/pricing/",
+    "team": "https://youssef-benatti.me/esim-arbitrage-calculator/pricing/"
+  },
+  "redeem_path": "/esim-arbitrage-calculator/pricing/",
+  "contact_email": "partnerships@youssef-benatti.me",
+  "plans": {
+    "free": {
+      "label": "Free",
+      "price_monthly": 0,
+      "features": [
+        "Full price comparison for 94 destinations",
+        "Checkout currency optimiser for 20 currencies",
+        "Every trip length and price, in your currency",
+        "Comparison against other eSIM providers"
+      ]
+    },
+    "pro": {
+      "label": "Pro",
+      "price_monthly": 7,
+      "price_yearly": 59,
+      "features": [
+        "Everything in Free",
+        "Price alerts for the destinations you follow",
+        "Full price and coverage data export (CSV + JSON)",
+        "The pricing-error monitor, updated as it is found",
+        "Early access to each month's catalogue refresh"
+      ]
+    },
+    "team": {
+      "label": "Team",
+      "price_monthly": 29,
+      "price_yearly": 249,
+      "features": [
+        "Everything in Pro",
+        "Up to 5 seats",
+        "API access to the price and coverage data",
+        "Priority support"
+      ]
+    }
+  },
+  "free_tier": {
+    "_comment": [
+      "The free tier must stay generous. The site's value as a search and",
+      "referral asset depends on the calculator being completely free, and",
+      "a paywalled calculator ranks far worse."
+    ],
+    "hide": ["data_export", "pricing_error_monitor", "price_alerts", "api"]
+  },
+  "entitlement": {
+    "cookie": "esim_sub",
+    "max_age_days": 400,
+    "header": "X-ESIM-Subscriber"
+  },
+  "worker": {
+    "_comment": [
+      "The Worker serves the site and the premium API. It is NOT in front",
+      "of the static site for the free pages - those are served by GitHub",
+      "Pages. The Worker only fronts the premium endpoints and the",
+      "entitlement check, so the free experience stays fast and free."
+    ],
+    "name": "esim-subscription",
+    "kv_namespace": "ESIM_SUBS",
+    "d1_database": "esim_subscribers",
+    "static_origin": "https://youssef-benatti.me",
+    "static_path": "/esim-arbitrage-calculator"
+  }
+}

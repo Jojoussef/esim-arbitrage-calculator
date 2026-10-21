@@ -34,6 +34,7 @@ import { buildHero, pickQuickDestinations } from "./lib/app-hero.mjs";
 import { buildThemeCss, themeBootstrapScript, themeToggleScript } from "./lib/theme.mjs";
 import { intentCaptureScript } from "./lib/intent-capture.mjs";
 import { buildAdvertisePage, buildMediaKitText } from "./lib/vendor-pitch.mjs";
+import { buildPricingPage } from "./lib/pages-subscription.mjs";
 import { analyseDestination, renderDestinationBody } from "./lib/pages-destinations.mjs";
 import {
   buildDestinationsIndex,
@@ -251,11 +252,11 @@ function main() {
       site,
       stats,
       slug: "privacy",
-      title: "Privacy Policy — eSIM Arbitrage & Break-Even Engine",
+      title: "Privacy — eSIM Price Truth (No Tracking, No Cookies)",
       description:
-        "How the eSIM Arbitrage & Break-Even Engine handles data: no accounts, no tracking cookies, no server-side collection.",
+        "Using the eSIM price calculator sends nothing to us: no cookies, no trackers, no account. If you subscribe, we store only your email and plan.",
       nav: "",
-      body: privacyBody(site, stats),
+      body: privacyBody(site, stats, readJson("config/subscription.json")),
     }),
     buildStaticPage({
       site,
@@ -292,6 +293,15 @@ function main() {
     buildMediaKitText({ site, stats, catalog, monetization })
   );
   console.log("generated the vendor media kit (/advertise/ + kit.txt)");
+
+  // ------------------------------------------- 4c. the pricing page -----
+  // The subscription front door. The calculator stays free; this is where
+  // the paid data tier is sold.
+  const subscription = readJson("config/subscription.json");
+  const pricing = buildPricingPage({ site, stats, subscription });
+  write(pricing.path, pricing.html);
+  pages.push(pricing.page);
+  console.log("generated the pricing page (/pricing/)");
 
   // ------------------------------------------------------- 5. assets --
   cpSync(resolve(ROOT, "src/styles.css"), resolve(DIST, "styles.css"));

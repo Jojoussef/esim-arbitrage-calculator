@@ -76,6 +76,7 @@ function headerBlock(site, page) {
         ${item(url(site, "/destinations/"), "Destinations", "destinations")}
         ${item(url(site, "/guides/"), "Guides", "guides")}
         ${item(url(site, "/fx-audit/"), "FX Audit", "fx")}
+        ${item(url(site, "/pricing/"), "Pricing", "pricing")}
       </nav>
     </div>
   </header>`;
@@ -105,6 +106,7 @@ function footerBlock(site, stats) {
           <li><a href="${esc(url(site, "/inversions/"))}" class="hover:text-accent">${esc(stats.inversions)} plans priced backwards</a></li>
           <li><a href="${esc(url(site, "/fx-audit/"))}" class="hover:text-accent">Which currency to pay in</a></li>
           <li><a href="${esc(url(site, "/guides/"))}" class="hover:text-accent">Traveler guides</a></li>
+          <li><a href="${esc(url(site, "/pricing/"))}" class="hover:text-accent">Pro subscription</a></li>
         </ul>
       </div>
       <div>

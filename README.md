@@ -21,6 +21,8 @@ tooling leaks into the public pages.
 config/
   site.json           site metadata, brand, theme colours, mirror target
   affiliates.json     affiliate program registry + UTM settings   <-- edit this
+  monetization.json    sponsorship / lead-gen / data-licence models
+  subscription.json    the Pro + Team subscription plans          <-- edit this
 data/                 the catalogue snapshot (generated, committed)
   catalog.json        94 destinations, 20 currencies, 224 inversions
   fx.json             spot rates + catalogue medians per currency
@@ -30,12 +32,14 @@ src/
   app.html            the original single-file calculator (transformed at build)
   styles.css          supplemental styles
   theme.css           design tokens: colour, radius, elevation, light + dark
-  assets/             favicon + OG image
+  assets/             favicon, OG image, subscription client
 scripts/
   extract_data.mjs    pull the dataset out of the original HTML
   build.mjs           generate the whole site into dist/
-  check.mjs           monetisation, SEO and voice checks
+  build-worker.mjs    build the subscription Worker (embeds the catalogue)
+  check.mjs           monetisation, SEO, voice and subscription checks
   validate.mjs        structural checks (JS parses, no template artefacts)
+  test-entitlement.mjs  tests for the paywall signature scheme
   find-syntax-error.mjs  locate a JS syntax error in a built page
   serve.mjs           zero-dependency local preview server
   deploy.mjs          build + publish to GitHub Pages + mirror
@@ -43,6 +47,10 @@ scripts/
   check-dns.mjs       verify the domain is serving over HTTPS
   social-posts.mjs    generate the Phase 3 post copy
   lib/                the generator internals
+worker/               the subscription API (Cloudflare Worker)
+  index.js            entitlement checks + the premium endpoints
+  schema.sql          the subscriber / watchlist / price-event tables
+  wrangler.toml       deployment config
 ```
 
 ## Quick start
@@ -56,6 +64,9 @@ node scripts/deploy.mjs    # build + push to gh-pages + mirror
 ```
 
 There are **no npm dependencies**. Node 18+ is the only requirement.
+
+The subscription Worker does need `wrangler`, but only if you are deploying
+it — the site builds and the free tier works without it.
 
 ---
 
@@ -73,6 +84,70 @@ palette is changed in one place:
 Dark mode is applied via `prefers-color-scheme`, with a light/auto/dark
 toggle in the header that persists to `localStorage`. A pre-paint bootstrap
 script sets the theme before first paint, so there is no flash.
+
+---
+
+## The subscription model
+
+The affiliate programmes rejected the publisher, so the site needed a
+revenue model that does not depend on anyone's approval. The subscription
+is that model: **the calculator stays completely free, and the paid tier
+sells the work around the data.**
+
+| Plan | Price | What it adds |
+|---|---|---|
+| Free | $0 | The calculator, every destination, every currency, every trip length. No account, no cookie. |
+| Pro | $7/mo · $59/yr | Price alerts, the flat clean export, the pricing-error monitor as a feed. |
+| Team | $29/mo · $249/yr | Everything in Pro, 5 seats, API access, priority support. |
+
+**The free tier is the whole point.** The calculator is the SEO asset and
+the referral asset; paywalling it would destroy both. `scripts/check.mjs`
+fails the build if the free plan ever gets a price.
+
+**What the paid tier actually sells.** The catalogue is already served
+publicly at `/data/catalog.json` (the free calculator is client-side), so
+"sell the data file" would be pointless. What a subscriber pays for is the
+*labour*: being told when a price moves, a pre-flattened export ready for
+a spreadsheet, and the error monitor as a live feed.
+
+**How it is enforced.** Server-side, in a Cloudflare Worker:
+
+```
+browser  ──Authorization: Bearer <signed token>──▶  Worker
+                                                  ├─ verify HMAC signature
+                                                  ├─ check the revocation list
+                                                  └─ serve the premium data
+```
+
+The premium data is simply **not sent** to a browser without a valid
+entitlement — which is the only way to actually gate data. Client-side
+obfuscation is not security.
+
+**The session lives in `localStorage`, not a cookie.** The site is on
+`youssef-benatti.me` and the API is on `workers.dev`, so a cookie would be
+a third-party cookie — which modern browsers block. A bearer token has no
+such problem.
+
+**It costs nothing at this scale.** Workers: 100k requests/day free. KV:
+100k reads/day free. D1: 5M rows read/day free. At 100 subscribers you use
+well under 1% of it.
+
+**To switch it on you need one thing: a checkout URL.** Create a Pro and a
+Team product in Lemon Squeezy (5% + 50¢, Merchant of Record) or Gumroad
+(10% + 50¢, Merchant of Record), then set them in
+`config/subscription.json`:
+
+```json
+"checkout_urls": {
+  "pro":  "https://your-store.lemonsqueezy.com/checkout/buy/...",
+  "team": "https://your-store.lemonsqueezy.com/checkout/buy/..."
+}
+```
+
+Then rebuild. `scripts/check.mjs` fails the build if a paid plan has no
+price, no features, or a placeholder checkout URL.
+
+See `docs/MONETIZATION.md` for the full strategy.
 
 ---
 

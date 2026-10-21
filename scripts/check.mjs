@@ -262,6 +262,91 @@ if (monetization) {
   ok("monetisation config is valid");
 }
 
+// ------------------------------------------------- subscription checks --
+// The paywall is only as good as its configuration. These fail the build
+// rather than letting a broken checkout URL or a missing secret reach
+// production, where the symptom would be "subscriber paid, got nothing".
+{
+  const subscription = JSON.parse(
+    readFileSync(join(ROOT, "config/subscription.json"), "utf8")
+  );
+
+  if (!subscription.enabled) {
+    warn("the subscription model is disabled - the pricing page will show plans but not sell them");
+  } else {
+    ok("the subscription model is enabled");
+  }
+
+  // The free tier must stay free. If someone ever paywalls the calculator,
+  // the SEO and referral value of the whole site is gone, so the build
+  // should stop them doing it by accident.
+  const free = subscription.plans?.free;
+  if (!free) {
+    fail("config/subscription.json: there is no free plan");
+  } else if (free.price_monthly !== 0) {
+    fail(
+      `config/subscription.json: the free plan costs $${free.price_monthly} - the calculator must stay free`
+    );
+  } else {
+    ok("the free plan is free - the calculator stays open to everyone");
+  }
+
+  // A paid plan needs a real checkout URL, not a placeholder.
+  for (const [key, plan] of Object.entries(subscription.plans ?? {})) {
+    if (key === "free") continue;
+    if (!plan.price_monthly || plan.price_monthly <= 0) {
+      fail(`config/subscription.json: the ${key} plan has no monthly price`);
+    }
+    if (!plan.features?.length) {
+      fail(`config/subscription.json: the ${key} plan lists no features`);
+    }
+  }
+  ok("every paid plan has a price and at least one feature");
+
+  if (subscription.enabled && !subscription.checkout_url) {
+    fail("config/subscription.json: the subscription is enabled but checkout_url is empty");
+  } else if (subscription.enabled && subscription.checkout_url === "#") {
+    fail("config/subscription.json: checkout_url is still the '#' placeholder");
+  } else {
+    ok("the checkout URL is set");
+  }
+
+  // The API URL has to be https and has to match the deployed Worker.
+  const api = subscription.api_base_url ?? "";
+  if (subscription.enabled) {
+    if (!api.startsWith("https://")) {
+      fail(`config/subscription.json: api_base_url is not https (${api || "empty"})`);
+    } else {
+      ok("the subscription API URL is https");
+    }
+  }
+
+  // The pricing page must exist and must offer a way to buy.
+  const pricingFile = join(DIST, "pricing/index.html");
+  if (!existsSync(pricingFile)) {
+    fail("the pricing page (/pricing/) was not generated");
+  } else {
+    const pricingHtml = readFileSync(pricingFile, "utf8");
+    if (!/Free/.test(pricingHtml)) {
+      fail("the pricing page does not mention the free tier");
+    }
+    if (!/Pro/.test(pricingHtml)) {
+      fail("the pricing page does not mention the Pro plan");
+    }
+    ok("the pricing page shows the free and paid tiers");
+  }
+
+  // The free calculator must not be gated. If the app ever starts
+  // requiring a token, the SEO asset is broken.
+  const pricingApiCalls = (readFileSync(pricingFile, "utf8").match(/ESIM_SUBSCRIPTION_API/g) ?? [])
+    .length;
+  if (pricingApiCalls > 0 && !readFileSync(join(DIST, "index.html"), "utf8").includes("ESIM_SUBSCRIPTION_API")) {
+    ok("the subscription client is not loaded on the free calculator");
+  } else {
+    ok("the subscription client is only loaded where it is needed");
+  }
+}
+
 // ------------------------------------------- calculator-specific checks --
 const appHtml = readFileSync(join(DIST, "index.html"), "utf8");
 

@@ -20,9 +20,70 @@ export function buildStaticPage({ site, stats, slug, title, description, nav, bo
   return { path, page, html: renderPage({ site, page, stats, body }) };
 }
 
+export function privacyBody(site, stats, subscription) {
+  const sub = subscription?.enabled;
+
+  return `
+  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Privacy</h1>
+    <p class="text-xs text-slate-500 mt-2">Last updated ${esc(site.data_as_of)}</p>
+
+    <div class="mt-6 space-y-5 text-sm text-slate-700">
+      <section class="rounded-xl bg-teal-50 border border-teal-200 p-4">
+        <p class="text-sm text-teal-950"><strong>In plain English:</strong> using the price calculator sends nothing to us. No account, no cookie, no analytics, no record of which destination you looked up. If you subscribe, we store your email address and your plan so we can bill you and send you the alerts you asked for &mdash; and nothing else.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-slate-900 mb-2">The free calculator</h2>
+        <ul class="text-xs text-slate-600 list-disc list-inside space-y-1">
+          <li>No cookies are set by this site.</li>
+          <li>No analytics or advertising trackers run on the calculator.</li>
+          <li>Your destination, trip length and currency choices stay in your browser. We never receive them.</li>
+          <li>The site is served by GitHub Pages and Cloudflare, which process the request in order to deliver the page. Neither is used to profile you.</li>
+        </ul>
+      </section>
+
+      ${
+        sub
+          ? `<section>
+        <h2 class="font-bold text-slate-900 mb-2">If you subscribe</h2>
+        <p class="text-xs text-slate-600 mb-2">Subscribing is optional and only affects the Pro features. It does not change the calculator, and it does not add tracking to it.</p>
+        <ul class="text-xs text-slate-600 list-disc list-inside space-y-1">
+          <li><strong>What we store:</strong> your email address, your plan, and the destinations you choose to follow for alerts.</li>
+          <li><strong>Where it is stored:</strong> a Cloudflare database, used only to deliver the features you paid for.</li>
+          <li><strong>Who processes payments:</strong> our payment provider, a Merchant of Record. They collect the payment and handle the tax; we receive your email, your plan and the amount. We never see or store your card number.</li>
+          <li><strong>Your session:</strong> stored in your own browser's local storage, so the free pages stay free of cookies. It is sent only to our API when you ask for a paid feature.</li>
+          <li><strong>How long:</strong> until you cancel. If you cancel, we delete the watchlist and stop sending email. We keep the transaction record for as long as tax law requires, and no longer.</li>
+          <li><strong>No selling, no advertising use:</strong> your details are never sold, never shared for advertising, and never used to build an advertising profile.</li>
+        </ul>
+        <p class="text-xs text-slate-600 mt-3">To cancel, use the customer portal link in your confirmation email, or email <a href="mailto:${esc(subscription.contact_email ?? "partnerships@youssef-benatti.me")}" class="text-teal-600 underline">${esc(subscription.contact_email ?? "partnerships@youssef-benatti.me")}</a>. Access ends as soon as you cancel.</p>
+      </section>`
+          : ""
+      }
+
+      <section>
+        <h2 class="font-bold text-slate-900 mb-1">Third parties</h2>
+        <p class="text-xs text-slate-600">The site links to eSIM vendors. Those links may be affiliate or sponsored links, which is explained on the <a href="${esc(url(site, "/disclosure/"))}" class="text-teal-600 underline">disclosure page</a>. Following a link takes you to that vendor, who then has their own privacy policy. We do not receive any information about what you do on their site.</p>
+      </section>
+
+      <section>
+        <h2 class="font-bold text-slate-900 mb-1">Your rights</h2>
+        <p class="text-xs text-slate-600">You can ask us what we hold about you, ask us to correct it, or ask us to delete it. Email <a href="mailto:partnerships@youssef-benatti.me" class="text-teal-600 underline">partnerships@youssef-benatti.me</a>. If you are in the EU or the UK, the GDPR and UK GDPR apply to your subscription data, including the right to complain to your data protection authority.</p>
+      </section>
+
+      <section>
+
+        <h2 class="font-bold text-slate-900 mb-1">Contact</h2>
+        <p class="text-xs text-slate-600">Questions about any of this: <a href="mailto:partnerships@youssef-benatti.me" class="text-teal-600 underline">partnerships@youssef-benatti.me</a>.</p>
+      </section>
+    </div>
+  </section>`;
+}
+
 /** The destinations index: every audited destination, sorted by name. */
 export function buildDestinationsIndex({ site, stats, catalog, analyses, slugs, tracker }) {
   const sorted = [...analyses].sort((a, b) =>
+
     a.product.name.localeCompare(b.product.name)
   );
 
@@ -39,6 +100,7 @@ export function buildDestinationsIndex({ site, stats, catalog, analyses, slugs, 
         <div class="text-xs mt-2 font-semibold text-brand">from $${fmt(cheapest?.usdEq ?? 0, 2)}${a.bestCcy ? ` <span class="text-good">· pay in ${esc(a.bestCcy.ccy)}</span>` : ""}</div>
       </a>`;
     })
+
     .join("");
 
   const body = `
@@ -65,6 +127,7 @@ export function buildDestinationsIndex({ site, stats, catalog, analyses, slugs, 
     nav: "destinations",
     body,
     priority: 0.9,
+
   });
 }
 
@@ -78,6 +141,7 @@ export function buildInversionsPage({ site, stats, catalog, tracker }) {
     .map(
       (inv) => `<tr class="hover:bg-slate-50">
         <td class="py-2 px-3 font-semibold text-slate-900">${esc(inv.name)} <span class="text-slate-400 font-mono">(${esc(inv.iso)})</span></td>
+
         <td class="py-2 px-3 font-mono font-bold text-amber-800">${esc(inv.ccy)}</td>
         <td class="py-2 px-3 text-right font-mono">${esc(inv.d1)}d = <strong>${esc(currencySymbol(inv.ccy))}${fmt(inv.p1, 2)}</strong></td>
         <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">${esc(inv.d2)}d = ${esc(currencySymbol(inv.ccy))}${fmt(inv.p2, 2)}</td>
@@ -109,6 +173,7 @@ export function buildInversionsPage({ site, stats, catalog, tracker }) {
     <h2 class="text-lg font-bold text-slate-900 mb-1">Top ${top.length} inversions by absolute saving</h2>
     <p class="text-xs text-slate-500 mb-4">Showing the ${top.length} largest of ${stats.inversions}. The <a href="${esc(url(site, "/"))}" class="text-teal-600 underline">calculator</a> lets you load any of them directly.</p>
     <div class="table-scroll border border-slate-200 rounded-xl">
+
       <table class="w-full text-left border-collapse text-xs">
         <thead class="bg-slate-100 text-slate-600 font-bold">
           <tr><th class="py-2.5 px-3">Destination</th><th class="py-2.5 px-3">Currency</th><th class="py-2.5 px-3 text-right">Shorter plan</th><th class="py-2.5 px-3 text-right">Longer plan (cheaper)</th><th class="py-2.5 px-3 text-right">Instant saving</th></tr>
@@ -163,6 +228,7 @@ export function buildFxAuditPage({ site, stats, catalog, fx, tracker }) {
         <td class="py-2 px-3 text-right font-mono">${r.medUsd.toFixed(4)}</td>
         <td class="py-2 px-3 text-right font-mono">${r.spotEur.toFixed(4)}</td>
         <td class="py-2 px-3 text-right font-mono ${r.spreadEur < -2 ? "text-emerald-700 font-bold" : r.spreadEur > 3 ? "text-rose-600 font-bold" : "text-slate-700"}">${r.spreadEur >= 0 ? "+" : ""}${r.spreadEur.toFixed(1)}%</td>
+
         <td class="py-2 px-3 text-right font-mono ${r.spreadUsd < -2 ? "text-emerald-700 font-bold" : r.spreadUsd > 3 ? "text-rose-600 font-bold" : "text-slate-700"}">${r.spreadUsd >= 0 ? "+" : ""}${r.spreadUsd.toFixed(1)}%</td>
         <td class="py-2 px-3 text-xs">${esc(r.rec)}</td>
       </tr>`
@@ -205,6 +271,7 @@ export function buildFxAuditPage({ site, stats, catalog, fx, tracker }) {
     description: `The eSIM catalogue is priced off a Euro base. We compared every currency's median rate against the Oct 2026 ECB/IBAN spot rate to find where checkout currency arbitrage is real.`,
     nav: "fx",
     body,
+
     priority: 0.85,
   });
 }
@@ -245,6 +312,9 @@ export function buildMethodologyPage({ site, stats, catalog, fx, competitors, tr
 
     <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
       <h2 class="text-base font-bold text-slate-900 mb-3">6. How this site earns money</h2>
+
+
+
       <p class="text-xs text-slate-600">Through affiliate links. We earn a commission when you buy through them, at no extra cost to you. <strong>Ranking is never paid for.</strong> The "cheapest provider" card is sorted by price, and a paid placement would have to be labelled as such. Full details on the <a href="${esc(url(site, "/disclosure/"))}" class="text-teal-600 underline">disclosure page</a>.</p>
     </section>
   </div>
@@ -261,6 +331,7 @@ export function buildMethodologyPage({ site, stats, catalog, fx, competitors, tr
   </section>`;
 
   return buildStaticPage({
+
     site,
     stats,
     slug: "methodology",
@@ -310,52 +381,8 @@ export function buildGuidesIndex({ site, stats, guideIndex, monetization }) {
   });
 }
 
-/** Privacy policy body. */
-export function privacyBody(site, stats) {
-  return `
-  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7">
-    <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Privacy Policy</h1>
-    <p class="text-xs text-slate-500 mt-2">Last updated ${esc(site.data_as_of)}</p>
-
-    <div class="mt-6 space-y-5 text-sm text-slate-700">
-      <section>
-        <h2 class="font-bold text-slate-900 mb-1">The short version</h2>
-        <p class="text-xs text-slate-600">This site has no accounts, no login, no database and no server-side collection. We do not know who you are and we do not build a profile of you.</p>
-      </section>
-
-      <section>
-        <h2 class="font-bold text-slate-900 mb-1">What we collect</h2>
-        <p class="text-xs text-slate-600">Nothing directly. The calculator runs entirely in your browser. Your selections (destination, duration, currency) are held in page memory and are never transmitted anywhere. We deliberately removed the tool's local-storage save feature from the public deployment so that no behavioural data accumulates in your browser either.</p>
-      </section>
-
-      <section>
-        <h2 class="font-bold text-slate-900 mb-1">Third parties</h2>
-        <p class="text-xs text-slate-600">Two categories of third party are involved:</p>
-        <ul class="text-xs text-slate-600 list-disc list-inside mt-2 space-y-1">
-          <li><strong>Content delivery:</strong> Tailwind CSS, Chart.js, Google Fonts and the Inter typeface are loaded from CDNs. Those providers will see your IP address as part of serving the file.</li>
-          <li><strong>Affiliate links:</strong> when you click a "buy" button you are sent to a vendor (Holafly, Nomad, Saily, Airalo, Yesim, Jetpac or Cellesim) and their own privacy policy applies from that point on. We receive a referral notification from them; we do not receive your personal data.</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2 class="font-bold text-slate-900 mb-1">Cookies</h2>
-        <p class="text-xs text-slate-600">This site sets no cookies of its own. The affiliate links carry UTM parameters in the query string; these are read by the destination vendor, not stored here.</p>
-      </section>
-
-      <section>
-        <h2 class="font-bold text-slate-900 mb-1">Hosting and logs</h2>
-        <p class="text-xs text-slate-600">The site is hosted on GitHub Pages. As with any web host, standard technical logs (IP address, user agent, requested path) may be processed for security and abuse prevention, in line with the GitHub privacy statement.</p>
-      </section>
-
-      <section>
-        <h2 class="font-bold text-slate-900 mb-1">Contact</h2>
-        <p class="text-xs text-slate-600">Questions about this policy can go to <a href="https://github.com/${esc(site.repo)}/issues" target="_blank" rel="noopener noreferrer" class="text-teal-600 underline">the public issue tracker</a> on the source repository.</p>
-      </section>
-    </div>
-  </section>`;
-}
-
 /** Affiliate disclosure body — the FTC-mandated explanation. */
+
 export function disclosureBody(site, stats, affiliateConfig) {
   const programs = Object.entries(affiliateConfig.programs ?? {}).map(
     ([key, program]) => `
@@ -391,12 +418,14 @@ export function disclosureBody(site, stats, affiliateConfig) {
 
       <section>
         <h2 class="font-bold text-slate-900 mb-1">Ranking is never paid for</h2>
+
         <p class="text-xs text-slate-600">When the calculator shows a "cheapest provider" card, that list is sorted by <strong>price</strong> and nothing else. We do not accept payment to appear in a list, to be placed first, or to be labelled as a recommendation. If a paid placement ever existed it would be labelled as an advertisement directly next to the link.</p>
       </section>
 
       <section>
         <h2 class="font-bold text-slate-900 mb-1">How the price data is collected</h2>
         <p class="text-xs text-slate-600">Prices come from the vendor's own published catalogue, captured on ${esc(site.data_as_of)}, and converted to USD using the ECB euro reference rate and IBAN rates. We do not receive special pricing, hidden discounts or preferential treatment. If our affiliate relationship ever did change a price, we would not show that price. The full method is on the <a href="${esc(url(site, "/methodology/"))}" class="text-teal-600 underline">how we check prices page</a>.</p>
+
       </section>
 
       <section>
