@@ -216,7 +216,7 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
       </div>
       <div class="text-right">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Cheapest ${esc(product.plantype)} plan</div>
-        <div class="text-3xl font-extrabold text-[#0F2942]">${esc(headlinePrice)}</div>
+        <div class="text-3xl font-extrabold text-brand">${esc(headlinePrice)}</div>
         <div class="text-xs text-slate-500">${esc(headlineDays)}-day &middot; USD equivalent</div>
       </div>
     </div>
@@ -284,7 +284,7 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
         <h2 class="text-base font-bold text-slate-900 mb-1">Who to buy from</h2>
         <p class="text-xs text-slate-500 mb-4">The same trip priced by each provider, so you can see who is cheapest. We may earn a commission if you buy &mdash; it costs you nothing extra.</p>
         <div class="space-y-2.5">${providerRows}</div>
-        <a href="${esc(holaflyHref)}" target="_blank" rel="sponsored noopener noreferrer" class="mt-4 block w-full text-center bg-[#0F2942] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-2.5 px-4 rounded-xl transition">
+        <a href="${esc(holaflyHref)}" target="_blank" rel="sponsored noopener noreferrer" class="btn-primary mt-4 block w-full text-center text-white font-semibold text-xs sm:text-sm py-2.5 px-4 transition">
           Get ${esc(product.name)} from ${esc(headlinePrice)} &rarr;
         </a>
         <a href="${esc(url(site, `/?dest=${product.iso}`))}" class="mt-2 block w-full text-center bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 font-semibold text-xs sm:text-sm py-2.5 px-4 rounded-xl transition">

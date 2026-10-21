@@ -7,6 +7,7 @@
  */
 
 import { esc, jsonLd } from "./analysis.mjs";
+import { themeBootstrapScript, themeToggleScript } from "./theme.mjs";
 
 /** Absolute URL for a path relative to the site root. */
 export function url(site, path = "/") {
@@ -45,29 +46,32 @@ function headBlock(site, page) {
 
   <link rel="icon" href="${esc(url(site, "/assets/favicon.svg"))}" type="image/svg+xml">
   <link rel="stylesheet" href="https://cdn.tailwindcss.com/3.4.17">
+  <link rel="stylesheet" href="${esc(url(site, "/theme.css"))}">
   <link rel="stylesheet" href="${esc(url(site, "/styles.css"))}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>`;
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>${themeBootstrapScript()}</script>`;
 }
 
 function headerBlock(site, page) {
   const home = url(site, "/");
   const item = (href, label, key) =>
-    `<a href="${esc(href)}" class="px-3 py-1.5 rounded-lg transition whitespace-nowrap ${page.nav === key ? "bg-[#0F2942] text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}">${label}</a>`;
+    `<a href="${esc(href)}" class="nav-link px-3 py-1.5 rounded-lg transition whitespace-nowrap ${page.nav === key ? "is-active" : ""}">${label}</a>`;
 
   return `  <a href="#main" class="skip-link">Skip to main content</a>
-  <header class="bg-[#0F2942] text-white border-b border-slate-800 sticky top-0 z-30">
+  <header class="app-header sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
       <a href="${esc(home)}" class="flex items-center gap-3">
-        <span class="w-9 h-9 rounded-lg bg-teal-500/20 border border-teal-400/40 flex items-center justify-center text-teal-300 font-extrabold text-lg">eS</span>
+        <span class="brand-mark w-9 h-9 rounded-lg border flex items-center justify-center font-extrabold text-lg">eS</span>
         <span>
-          <span class="font-bold text-base sm:text-lg tracking-tight text-white">eSIM Arbitrage &amp; Break-Even Engine</span>
-          <span class="block text-xs text-slate-300 hidden sm:block">Live FX Checkout Optimizer &amp; Duration Inversion Finder</span>
+          <span class="font-bold text-base sm:text-lg tracking-tight text-white">${esc(site.name ?? "eSIM Price Truth")}</span>
+          <span class="brand-sub block text-xs hidden sm:block">${esc(site.tagline ?? "Find the cheapest eSIM for your trip.")}</span>
         </span>
       </a>
-      <nav aria-label="Main" class="flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-700/70 overflow-x-auto max-w-full text-xs sm:text-sm font-semibold">
+      <nav aria-label="Main" class="nav-shell flex items-center gap-1 p-1 rounded-xl border overflow-x-auto max-w-full text-xs sm:text-sm font-semibold">
+        <button id="themeToggle" type="button" class="theme-toggle mr-1" title="Theme" aria-label="Change theme">&#9681;</button>
         ${item(url(site, "/"), "Calculator", "home")}
         ${item(url(site, "/destinations/"), "Destinations", "destinations")}
         ${item(url(site, "/guides/"), "Guides", "guides")}
@@ -86,34 +90,34 @@ function disclosureBlock(site) {
 }
 
 function footerBlock(site, stats) {
-  return `  <footer class="bg-white border-t border-slate-200 mt-10 py-8 px-4 sm:px-6 text-xs text-slate-500">
+  return `  <footer class="card rounded-none border-x-0 border-b-0 mt-10 py-8 px-4 sm:px-6 text-xs text-muted">
     <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
       <div>
-        <div class="font-bold text-slate-800 text-sm mb-2">eSIM Arbitrage &amp; Break-Even Engine</div>
-        <p>${esc(stats.destinations)} destinations &middot; ${esc(stats.currencies)} currencies &middot; ${esc(stats.variants.toLocaleString("en-US"))} plan variants &middot; ${esc(stats.prices.toLocaleString("en-US"))} audited prices.</p>
-        <p class="mt-2">Data grounded in the Oct 2026 vendor catalogue, cross-checked against <a href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer" class="text-teal-600 underline">ECB Reference Rates</a> and <a href="https://www.iban.com/exchange-rates" target="_blank" rel="noopener noreferrer" class="text-teal-600 underline">IBAN FX</a>.</p>
+        <div class="font-bold text-strong text-sm mb-2">${esc(site.name ?? "eSIM Price Truth")}</div>
+        <p>${esc(stats.destinations)} destinations &middot; ${esc(stats.currencies)} currencies &middot; ${esc(stats.variants.toLocaleString("en-US"))} plan variants &middot; ${esc(stats.prices.toLocaleString("en-US"))} prices checked.</p>
+        <p class="mt-2">Cross-checked against the <a href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer" class="text-accent underline">ECB reference rates</a> and <a href="https://www.iban.com/exchange-rates" target="_blank" rel="noopener noreferrer" class="text-accent underline">IBAN FX</a>.</p>
       </div>
       <div>
-        <div class="font-bold text-slate-800 text-sm mb-2">Explore</div>
+        <div class="font-bold text-strong text-sm mb-2">Explore</div>
         <ul class="space-y-1">
-          <li><a href="${esc(url(site, "/"))}" class="hover:text-teal-700">Interactive calculator</a></li>
-          <li><a href="${esc(url(site, "/destinations/"))}" class="hover:text-teal-700">All ${esc(stats.destinations)} destinations</a></li>
-          <li><a href="${esc(url(site, "/inversions/"))}" class="hover:text-teal-700">${esc(stats.inversions)} duration inversions</a></li>
-          <li><a href="${esc(url(site, "/fx-audit/"))}" class="hover:text-teal-700">${esc(stats.currencies)}-currency FX audit</a></li>
-          <li><a href="${esc(url(site, "/guides/"))}" class="hover:text-teal-700">Traveler guides</a></li>
+          <li><a href="${esc(url(site, "/"))}" class="hover:text-accent">Interactive calculator</a></li>
+          <li><a href="${esc(url(site, "/destinations/"))}" class="hover:text-accent">All ${esc(stats.destinations)} destinations</a></li>
+          <li><a href="${esc(url(site, "/inversions/"))}" class="hover:text-accent">${esc(stats.inversions)} plans priced backwards</a></li>
+          <li><a href="${esc(url(site, "/fx-audit/"))}" class="hover:text-accent">Which currency to pay in</a></li>
+          <li><a href="${esc(url(site, "/guides/"))}" class="hover:text-accent">Traveler guides</a></li>
         </ul>
       </div>
       <div>
-        <div class="font-bold text-slate-800 text-sm mb-2">Methodology &amp; legal</div>
+        <div class="font-bold text-strong text-sm mb-2">How &amp; legal</div>
         <ul class="space-y-1">
-          <li><a href="${esc(url(site, "/methodology/"))}" class="hover:text-teal-700">How the audit works</a></li>
-          <li><a href="${esc(url(site, "/privacy/"))}" class="hover:text-teal-700">Privacy</a></li>
-          <li><a href="${esc(url(site, "/disclosure/"))}" class="hover:text-teal-700">Affiliate disclosure</a></li>
-          <li><a href="https://github.com/${esc(site.repo)}" target="_blank" rel="noopener noreferrer" class="hover:text-teal-700">Source on GitHub</a></li>
+          <li><a href="${esc(url(site, "/methodology/"))}" class="hover:text-accent">How we check prices</a></li>
+          <li><a href="${esc(url(site, "/privacy/"))}" class="hover:text-accent">Privacy</a></li>
+          <li><a href="${esc(url(site, "/disclosure/"))}" class="hover:text-accent">Affiliate disclosure</a></li>
+          <li><a href="https://github.com/${esc(site.repo)}" target="_blank" rel="noopener noreferrer" class="hover:text-accent">Source on GitHub</a></li>
         </ul>
       </div>
     </div>
-    <div class="max-w-7xl mx-auto mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400">
+    <div class="max-w-7xl mx-auto mt-6 pt-4 border-t border-slate-100 text-[11px] text-muted">
       &copy; ${new Date().getFullYear()} ${esc(site.author)}. Prices and availability are the vendor's and can change without notice. This tool is independent and is not affiliated with or endorsed by Holafly, Nomad, Saily, Airalo, Yesim, Jetpac or Cellesim.
     </div>
   </footer>`;
@@ -142,6 +146,7 @@ ${disclosureBlock(site)}
 ${body}
 </main>
 ${footerBlock(site, stats)}
+<script>${themeToggleScript()}</script>
 ${scripts}
 ${bodyExtra}
 </body>

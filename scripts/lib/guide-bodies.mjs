@@ -14,7 +14,7 @@ export function ctaBlock(site, tracker, slug, headline, sub) {
   const nomad = tracker.link("nomad", slug);
   const airalo = tracker.link("airalo", slug);
   return `
-  <section class="rounded-2xl bg-[#0F2942] text-white p-6 sm:p-8 mt-8">
+  <section class="rounded-2xl bg-brand text-white p-6 sm:p-8 mt-8">
     <h2 class="text-xl font-bold">${esc(headline)}</h2>
     <p class="text-sm text-slate-300 mt-2 max-w-2xl">${esc(sub)}</p>
     <div class="flex flex-wrap gap-3 mt-5">

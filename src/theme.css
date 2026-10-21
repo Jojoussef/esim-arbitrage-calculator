@@ -204,6 +204,20 @@ body {
   color: var(--bad);
 }
 
+/* ---- brand backgrounds ---- */
+.bg-brand {
+  background-color: var(--brand);
+}
+.bg-accent {
+  background-color: var(--accent);
+}
+.bg-surface {
+  background-color: var(--surface);
+}
+.bg-surface-2 {
+  background-color: var(--surface-2);
+}
+
 /* ---- pills / chips ---- */
 .pill {
   display: inline-flex;

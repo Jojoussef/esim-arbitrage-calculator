@@ -35,7 +35,7 @@ export function buildDestinationsIndex({ site, stats, catalog, analyses, slugs, 
           <span class="text-[10px] font-mono text-slate-400">${esc(a.product.iso)}</span>
         </div>
         <div class="text-[11px] text-slate-500 mt-1">${esc(a.product.type)} &middot; ${a.days.length} durations</div>
-        <div class="text-xs mt-2 font-semibold text-[#0F2942]">from $${fmt(cheapest?.usdEq ?? 0, 2)}${a.bestCcy ? ` <span class="text-emerald-700">· pay in ${esc(a.bestCcy.ccy)}</span>` : ""}</div>
+        <div class="text-xs mt-2 font-semibold text-brand">from $${fmt(cheapest?.usdEq ?? 0, 2)}${a.bestCcy ? ` <span class="text-good">· pay in ${esc(a.bestCcy.ccy)}</span>` : ""}</div>
       </a>`;
     })
     .join("");
