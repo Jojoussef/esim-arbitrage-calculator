@@ -1,11 +1,17 @@
-# eSIM Arbitrage & Break-Even Engine
+# eSIM Price Truth
 
 Static site generator for a data-driven eSIM buying tool: it turns one
 catalogue snapshot into a calculator, 94 programmatic destination pages,
-three long-form audits, and a monetised affiliate funnel — all static, all
+three long-form guides, and a monetised affiliate funnel — all static, all
 free to host on GitHub Pages.
 
 **Live:** https://youssef-benatti.me/esim-arbitrage-calculator/
+
+The site is written for travellers, not for its operator: every page
+answers a question a traveller actually asks ("How much does an eSIM cost
+in Japan?", "Which currency should I pay in?"). `scripts/check.mjs` fails
+the build if the operator's voice, developer jargon or any owner-only
+tooling leaks into the public pages.
 
 ---
 
@@ -13,7 +19,7 @@ free to host on GitHub Pages.
 
 ```
 config/
-  site.json           site metadata, canonical URLs, mirror target
+  site.json           site metadata, brand, theme colours, mirror target
   affiliates.json     affiliate program registry + UTM settings   <-- edit this
 data/                 the catalogue snapshot (generated, committed)
   catalog.json        94 destinations, 20 currencies, 224 inversions
@@ -23,14 +29,19 @@ data/                 the catalogue snapshot (generated, committed)
 src/
   app.html            the original single-file calculator (transformed at build)
   styles.css          supplemental styles
+  theme.css           design tokens: colour, radius, elevation, light + dark
   assets/             favicon + OG image
 scripts/
   extract_data.mjs    pull the dataset out of the original HTML
   build.mjs           generate the whole site into dist/
-  check.mjs           monetisation + SEO invariant checks
+  check.mjs           monetisation, SEO and voice checks
   validate.mjs        structural checks (JS parses, no template artefacts)
+  find-syntax-error.mjs  locate a JS syntax error in a built page
   serve.mjs           zero-dependency local preview server
-  deploy.mjs          build + publish to GitHub Pages
+  deploy.mjs          build + publish to GitHub Pages + mirror
+  setup-dns.mjs       write the DNS records for the custom domain
+  check-dns.mjs       verify the domain is serving over HTTPS
+  social-posts.mjs    generate the Phase 3 post copy
   lib/                the generator internals
 ```
 
@@ -38,13 +49,30 @@ scripts/
 
 ```bash
 node scripts/build.mjs     # generate dist/
-node scripts/check.mjs     # verify monetisation + SEO
+node scripts/check.mjs     # verify monetisation, SEO and voice
 node scripts/validate.mjs  # verify structure
 node scripts/serve.mjs     # preview at http://localhost:8080
 node scripts/deploy.mjs    # build + push to gh-pages + mirror
 ```
 
 There are **no npm dependencies**. Node 18+ is the only requirement.
+
+---
+
+## Theme
+
+`src/theme.css` holds every colour as a CSS custom property. The brand and
+accent values are generated from `config/site.json` at build time, so the
+palette is changed in one place:
+
+```json
+"theme_color": "#0F2942",
+"accent_color": "#0D9488"
+```
+
+Dark mode is applied via `prefers-color-scheme`, with a light/auto/dark
+toggle in the header that persists to `localStorage`. A pre-paint bootstrap
+script sets the theme before first paint, so there is no flash.
 
 ---
 

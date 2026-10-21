@@ -60,7 +60,7 @@ export function fxGuideBody({ site, stats, catalog, fx, tracker }) {
   return `
   <article class="max-w-3xl mx-auto">
     <span class="text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">Currency arbitrage</span>
-    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">The ${stats.currencies}-Currency eSIM Checkout Audit</h1>
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">Which Currency Should You Pay an eSIM In?</h1>
     <p class="text-sm text-slate-600 mt-3">There is a dropdown on every eSIM checkout that lets you pick what currency you pay in. Most people never touch it. Here is what it is worth.</p>
 
     <div class="rounded-xl bg-teal-50/90 border border-teal-200 p-4 text-sm text-teal-950 my-6">
@@ -127,7 +127,7 @@ export function inversionGuideBody({ site, stats, catalog, tracker }) {
   return `
   <article class="max-w-3xl mx-auto">
     <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Pricing bugs</span>
-    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">Buying an Extra Day Is Cheaper</h1>
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">Why Can a Longer eSIM Cost Less?</h1>
     <p class="text-sm text-slate-600 mt-3">Every destination, currency and duration in the eSIM catalogue was checked. In <strong>${stats.inversions}</strong> cases, the longer plan is listed at a <em>lower</em> total price than the shorter one. Here is what that is worth, and why the iOS app hides most of it.</p>
 
     ${
@@ -222,7 +222,7 @@ export function breakEvenGuideBody({ site, stats, catalog, competitors, tracker 
   return `
   <article class="max-w-3xl mx-auto">
     <span class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200">Break-even math</span>
-    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">Unlimited vs Fixed-GB eSIMs in 2026</h1>
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">Unlimited or Fixed-GB: Which eSIM Is Cheaper for Your Trip?</h1>
     <p class="text-sm text-slate-600 mt-3">"Unlimited" is the most expensive word in travel data. It is also the right answer for some people. Here is the threshold that separates them &mdash; and the hotspot cap that flips it back.</p>
 
     <div class="rounded-xl bg-indigo-50/90 border border-indigo-200 p-4 text-sm text-indigo-950 my-6">

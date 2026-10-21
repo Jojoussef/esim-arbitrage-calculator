@@ -52,7 +52,7 @@ export function buildGuides({ site, stats, catalog, fx, competitors, tracker, sl
     "fx-audit-checkout-currency",
     {
       tag: "Currency arbitrage",
-      title: "The 20-Currency eSIM Checkout Audit: How to Pay 15% Less by Changing One Dropdown",
+      title: "Which Currency Should You Pay an eSIM In? (20 Currencies Compared)",
       excerpt:
         "The eSIM catalogue is priced off a single Euro base and then re-rounded into 20 local currencies. We measured the gap against the ECB reference rate for every single one.",
     },
@@ -74,8 +74,8 @@ export function buildGuides({ site, stats, catalog, fx, competitors, tracker, sl
   build(
     "buying-extra-days-is-cheaper",
     {
-      tag: "Pricing bugs",
-      title: `Buying an Extra Day Is Cheaper: ${stats.inversions} eSIM Plans Priced Backwards`,
+      tag: "Pricing errors",
+      title: `Why Can a Longer eSIM Cost Less? (${stats.inversions} Cases Found)`,
       excerpt:
         "In hundreds of destinations the longer plan is listed at a lower total price than the shorter one — and the iOS app hides most of them.",
     },
@@ -97,7 +97,7 @@ export function buildGuides({ site, stats, catalog, fx, competitors, tracker, sl
     "unlimited-vs-fixed-gb-break-even",
     {
       tag: "Break-even math",
-      title: "Unlimited vs Fixed-GB eSIMs in 2026: The Break-Even Math That Decides It",
+      title: "Unlimited or Fixed-GB: Which eSIM Is Cheaper for Your Trip?",
       excerpt:
         "Unlimited plans are not automatically better. Here is the usage threshold where a fixed-GB plan starts costing you more — and the hotspot caps that make the answer differ by vendor.",
     },

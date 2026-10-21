@@ -94,6 +94,45 @@ via the Namecheap API).
 
 ---
 
+## Search Console setup (the sitemap could not be read)
+
+The sitemap itself was always valid. What was missing was the **pointer at
+the domain root** — Google reads `https://youssef-benatti.me/robots.txt`
+first, and that file 404'd.
+
+Both are now published by the mirror step on every deploy:
+
+```
+https://youssef-benatti.me/robots.txt        -> points at the sitemap
+https://youssef-benatti.me/sitemapindex.xml  -> the sitemap index
+```
+
+### The steps
+
+1. Go to https://search.google.com/search-console
+2. **Add property** → choose **Domain** → `youssef-benatti.me`
+   (a Domain property covers every path, including `/esim-arbitrage-calculator/`)
+3. Verify with the **DNS TXT** record Google gives you. Add it in the
+   Namecheap DNS panel as a TXT record on `_google-site-verification`.
+4. **Sitemaps** → submit:
+   `https://youssef-benatti.me/esim-arbitrage-calculator/sitemap.xml`
+5. **URL Inspection** → paste the site URL → **Request indexing**.
+
+### Do not submit the mirror
+
+`https://youssef-benatti.me/esim/sitemap.xml` is the same 104 URLs with the
+same canonical tags. Submitting it as a second sitemap makes Google treat
+the pages as duplicates. Submit only the primary one.
+
+### Why a Domain property, not a URL prefix
+
+A URL-prefix property for `youssef-benatti.me/esim-arbitrage-calculator/`
+only covers that subdirectory and cannot verify by DNS file. A Domain
+property covers the whole domain, which is what you want — the 94
+destination pages are the traffic engine and they all sit under one path.
+
+---
+
 ## Why the build publishes to a branch instead of `actions/deploy-pages`
 
 GitHub Pages for this repository is in **legacy branch mode** (source:

@@ -84,7 +84,7 @@ const posts = [
     id: "post-1-fx-audit",
     sprint: "3.1",
     platform: "Reddit (r/travel, r/digitalnomad) + X",
-    title: "The 20-currency eSIM checkout audit",
+    title: "Which currency should you pay an eSIM in?",
     body: `I audited the eSIM catalogue across ${catalog.ccys.length} currencies and ${catalog.products.length} destinations, then compared every currency's median catalogue rate against the ECB reference rate for 15 Oct 2026.
 
 The catalogue is priced off a single EUR base, then re-rounded into each local currency. The rounding is not done at the live market rate, so the result is ${catalog.ccys.length} slightly wrong rates. Some favour you, some punish you.
@@ -108,7 +108,7 @@ ${base}/
     id: "post-2-duration-inversions",
     sprint: "3.2",
     platform: "Reddit (r/travel) + X + LinkedIn",
-    title: "Where buying an extra day is CHEAPER",
+    title: "Why can a longer eSIM cost less?",
     body: `I scanned every destination, currency and duration in an eSIM catalogue. In ${catalog.inversions.length} cases, the LONGER plan is listed at a LOWER total price than the shorter one.
 
 Not a rounding error in my table — an actual price inversion in the vendor's own price list.
@@ -138,7 +138,7 @@ ${base}/inversions/
     id: "post-3-break-even",
     sprint: "3.3",
     platform: "Reddit (r/travel, r/digitalnomad) + X",
-    title: "Unlimited vs fixed-GB: the break-even math",
+    title: "Unlimited or fixed-GB: which eSIM is cheaper for your trip?",
     body: `"Unlimited" eSIMs are the most expensive word in travel data. They are also the right answer for a lot of people. Here is the actual threshold.
 
 The reference price for fixed data is roughly $15 for 10GB, i.e. ~$1.50/GB.
