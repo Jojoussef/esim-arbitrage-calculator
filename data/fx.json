@@ -1,0 +1,51 @@
+{
+  "spot_per_eur": {
+    "USD": 1.1208,
+    "EUR": 1,
+    "GBP": 0.8461,
+    "HKD": 8.7953,
+    "TRY": 55.3873,
+    "CAD": 1.5923,
+    "AUD": 1.6218,
+    "CHF": 0.9305,
+    "JPY": 177.06,
+    "BRL": 5.6679,
+    "MXN": 20.7596,
+    "COP": 4707.36,
+    "CNY": 7.4993,
+    "ILS": 3.4769,
+    "EGP": 55.48,
+    "KRW": 1508.48,
+    "NOK": 10.652,
+    "PLN": 4.37,
+    "AED": 4.1161,
+    "SGD": 1.4379
+  },
+  "catalog_median_per_eur": {
+    "HKD": 7.2134,
+    "TRY": 50.0213,
+    "CAD": 1.4941,
+    "USD": 1.0839,
+    "COP": 4499.78,
+    "AED": 4.012,
+    "JPY": 175.4226,
+    "PLN": 4.3559,
+    "EUR": 1,
+    "CHF": 0.9399,
+    "SGD": 1.4521,
+    "GBP": 0.8662,
+    "AUD": 1.6952,
+    "KRW": 1593.98,
+    "EGP": 59.7282,
+    "MXN": 22.4563,
+    "NOK": 11.7013,
+    "BRL": 6.2901,
+    "CNY": 8.3945,
+    "ILS": 4.0549
+  },
+  "as_of": "2026-10-15",
+  "sources": [
+    "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+    "https://www.iban.com/exchange-rates"
+  ]
+}

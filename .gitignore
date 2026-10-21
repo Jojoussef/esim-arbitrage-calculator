@@ -1,0 +1,19 @@
+# Build output
+dist/
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local secrets - never commit real affiliate tracking URLs if you prefer to
+# manage them out-of-band. config/affiliates.json IS committed, but keep any
+# credential-bearing variant out of the repo.
+*.env
+.env*

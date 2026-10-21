@@ -1,0 +1,29 @@
+{
+  "_comment": [
+    "Central site configuration. Consumed by scripts/build.mjs.",
+    "Paths are relative to the deployed site root. 'base_path' is the",
+    "subdirectory the site is served from on GitHub Pages.",
+    "If you later serve the site from a root domain, set base_path to '/' and",
+    "rebuild - every generated URL is derived from this one value.",
+    "",
+    "'description' supports {placeholders} that are filled in from the real",
+    "dataset at build time: {prices}, {destinations}, {currencies},",
+    "{variants}, {inversions}. This keeps the copy honest automatically."
+  ],
+  "name": "eSIM Arbitrage & Break-Even Engine",
+  "short_name": "eSIM Arb Engine",
+  "title": "eSIM Arbitrage, FX Optimizer & Competitor Break-Even Calculator (2026)",
+  "tagline": "Live FX checkout optimizer, duration-inversion finder and 2026 competitor benchmark for 94 destinations.",
+  "description": "Compare eSIM prices across {currencies} currencies, find duration price inversions where buying more days costs less, and break-even against Holafly, Nomad, Saily, Airalo, Yesim and Jetpac. Built from {prices} audited prices across {destinations} destinations.",
+  "author": "Youssef Benatti",
+  "base_path": "/esim-arbitrage-calculator",
+  "domain": "youssef-benatti.me",
+  "canonical_base": "https://youssef-benatti.me/esim-arbitrage-calculator",
+  "locale": "en_US",
+  "theme_color": "#0F2942",
+  "accent_color": "#0D9488",
+  "twitter": "",
+  "repo": "Jojoussef/esim-arbitrage-calculator",
+  "data_as_of": "2026-10-15",
+  "promo_code": ""
+}

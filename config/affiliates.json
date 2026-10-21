@@ -1,0 +1,92 @@
+{
+  "_comment": [
+    "Affiliate program registry. Each entry holds the tracking URL that gets",
+    "baked into the built site so every visitor gets a referral link that",
+    "points back to this site (not a per-browser localStorage copy).",
+    "",
+    "HOW TO FILL THESE IN (roadmap Phase 1):",
+    "  Sprint 1.1  Saily (15%, 30d cookie)  -> Awin / FlexOffers",
+    "  Sprint 1.1  Yesim (10%+ base)         -> direct programme",
+    "  Sprint 1.2  Airalo (10%-12%)         -> Airalo Partners",
+    "  Sprint 1.2  Nomad (10%)              -> FlexOffers / Cuelinks",
+    "  Sprint 1.3  Holafly (10%-20%)        -> Holafly / Filify",
+    "  Sprint 1.3  Cellesim (20%, 30d cash) -> direct programme",
+    "",
+    "Paste your real tracking URL into the 'url' field and run:",
+    "    python3 scripts/build.py",
+    "",
+    "The 'fallback' is used when no tracking URL has been supplied yet, so the",
+    "site is never broken - it just will not earn a commission until wired.",
+    "Leave 'tracking_id' empty to disable UTM tagging for that program."
+  ],
+  "programs": {
+    "saily": {
+      "name": "Saily",
+      "url": "https://saily.com/",
+      "fallback": "https://saily.com/",
+      "tracking_id": "",
+      "rate": "15% per new user, 30-day cookie",
+      "program_url": "https://saily.com/affiliate",
+      "primary": true
+    },
+    "airalo": {
+      "name": "Airalo",
+      "url": "https://www.airalo.com/",
+      "fallback": "https://www.airalo.com/",
+      "tracking_id": "",
+      "rate": "10%-12% (Aff.Travel)",
+      "program_url": "https://www.airalo.com/partner",
+      "primary": true
+    },
+    "nomad": {
+      "name": "Nomad eSIM",
+      "url": "https://www.nomadesim.com/",
+      "fallback": "https://www.nomadesim.com/",
+      "tracking_id": "",
+      "rate": "10% (Cuelinks)",
+      "program_url": "https://www.nomadesim.com/partner",
+      "primary": true
+    },
+    "yesim": {
+      "name": "Yesim",
+      "url": "https://yesim.app/regions/europe-esim/",
+      "fallback": "https://yesim.app/regions/europe-esim/",
+      "tracking_id": "",
+      "rate": "10%+ base commission",
+      "program_url": "https://yesim.app/affiliate",
+      "primary": false
+    },
+    "jetpac": {
+      "name": "Jetpac",
+      "url": "https://www.jetpacglobal.com/",
+      "fallback": "https://www.jetpacglobal.com/",
+      "tracking_id": "",
+      "rate": "10%-15%",
+      "program_url": "https://www.jetpacglobal.com/affiliate",
+      "primary": false
+    },
+    "holafly": {
+      "name": "Holafly",
+      "url": "https://esim.holafly.com/",
+      "fallback": "https://esim.holafly.com/",
+      "tracking_id": "",
+      "rate": "10%-20%",
+      "program_url": "https://esim.holafly.com/affiliate",
+      "primary": true
+    },
+    "cellesim": {
+      "name": "Cellesim",
+      "url": "https://www.cellesim.com/",
+      "fallback": "https://www.cellesim.com/",
+      "tracking_id": "",
+      "rate": "20% cash, 30-day cookie",
+      "program_url": "https://www.cellesim.com/affiliate",
+      "primary": false
+    }
+  },
+  "utm": {
+    "utm_source": "esim-arb-calc",
+    "utm_medium": "affiliate",
+    "utm_campaign": "2026-arbitrage"
+  }
+}

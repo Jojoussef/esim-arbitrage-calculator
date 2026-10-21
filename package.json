@@ -1,0 +1,17 @@
+{
+  "name": "esim-arbitrage-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static site + calculator for the eSIM arbitrage, FX checkout optimizer and competitor break-even audit.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "extract": "node scripts/extract_data.mjs",
+    "serve": "node scripts/serve.mjs",
+    "check": "node scripts/check.mjs",
+    "deploy": "node scripts/build.mjs && node scripts/deploy.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
