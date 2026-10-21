@@ -30,6 +30,7 @@ import { renderPage, url } from "./lib/layout.mjs";
 import { transformApp, hardenApp } from "./lib/app-transform.mjs";
 import { stripOwnerTools } from "./lib/strip-owner-tools.mjs";
 import { applyUserVoice } from "./lib/app-copy.mjs";
+import { buildHero, pickQuickDestinations } from "./lib/app-hero.mjs";
 import { buildThemeCss, themeBootstrapScript, themeToggleScript } from "./lib/theme.mjs";
 import { analyseDestination, renderDestinationBody } from "./lib/pages-destinations.mjs";
 import {
@@ -134,14 +135,35 @@ function main() {
     console.warn(`WARNING: copy anchors not found: ${missed.join(", ")}`);
   }
 
-  // ---- theme: inject the generated tokens + the dark-mode bootstrap ----
+  // ---- theme: inject the dark-mode bootstrap (theme.css is linked in
+  // transformApp, which owns the <head>) ----
   const themeCss = buildThemeCss(
     readFileSync(resolve(ROOT, "src/theme.css"), "utf8"),
     site
   );
   appHtml = appHtml.replace(
-    `  <link rel="stylesheet" href="styles.css">`,
-    `  <link rel="stylesheet" href="theme.css">\n  <link rel="stylesheet" href="styles.css">\n  <script>${themeBootstrapScript()}</script>`
+    `  <link rel="stylesheet" href="theme.css">`,
+    `  <link rel="stylesheet" href="theme.css">\n  <script>${themeBootstrapScript()}</script>`
+  );
+
+  // The theme toggle is a progressive enhancement: if the script fails, the
+  // page still works and simply follows the OS preference.
+  appHtml = appHtml.replace(
+    `  </body>`,
+    `  <script>${themeToggleScript()}</script>\n  </body>`
+  );
+
+  // ---- the hero: promise, proof, and a way straight in ----
+  const quick = pickQuickDestinations(catalog.products, slugs).map((item) => ({
+    ...item,
+    url: `${site.canonical_base}/destinations/${item.slug}/`,
+  }));
+  const hero = buildHero({ site, stats, quick });
+  // hardenApp has already added id="main" to the <main> element, so the
+  // anchor includes it.
+  appHtml = appHtml.replace(
+    `  <main id="main" class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 space-y-6">`,
+    `  <main id="main" class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 space-y-6">\n${hero}`
   );
 
   write("index.html", appHtml);

@@ -33,9 +33,11 @@ export function applyUserVoice(html, { site, stats }) {
   };
 
   // ---- brand in the header ----
+  // The header brand becomes a <div>, not an <h1>: the hero carries the only
+  // <h1> on the page, which is what search engines expect.
   swap(
     `<h1 class="font-bold text-base sm:text-lg tracking-tight text-white">eSIM Arbitrage &amp; Break-Even Engine</h1>`,
-    `<h1 class="font-bold text-base sm:text-lg tracking-tight text-white">${brand.name ?? "eSIM Price Truth"}</h1>`,
+    `<div class="font-bold text-base sm:text-lg tracking-tight text-white">${brand.name ?? "eSIM Price Truth"}</div>`,
     "header brand name"
   );
 
@@ -114,6 +116,40 @@ export function applyUserVoice(html, { site, stats }) {
     `              Open Holafly &amp; Checkout in Optimal Currency &rarr;`,
     `              Get this plan &rarr;`,
     "holafly CTA label"
+  );
+
+  // ---- the header: theme toggle + token-based classes ----
+  swap(
+    `<header class="bg-[#0F2942] text-white border-b border-slate-800 sticky top-0 z-30">`,
+    `<header class="app-header sticky top-0 z-30">`,
+    "header classes"
+  );
+
+  swap(
+    `        <div class="w-9 h-9 rounded-lg bg-teal-500/20 border border-teal-400/40 flex items-center justify-center text-teal-300 font-extrabold text-lg">
+          eS
+        </div>`,
+    `        <div class="brand-mark w-9 h-9 rounded-lg border flex items-center justify-center font-extrabold text-lg">
+          eS
+        </div>`,
+    "brand mark"
+  );
+
+  swap(
+    `            <span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">${stats.destinations} destinations · ${stats.prices.toLocaleString(
+      "en-US"
+    )} prices</span>`,
+    `            <span class="brand-badge text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border">${stats.destinations} destinations · ${stats.prices.toLocaleString(
+      "en-US"
+    )} prices</span>`,
+    "brand badge"
+  );
+
+  swap(
+    `      <nav class="flex items-center gap-1 bg-slate-900/60 p-1 rounded-xl border border-slate-700/70 overflow-x-auto max-w-full">`,
+    `      <nav class="nav-shell flex items-center gap-1 p-1 rounded-xl border overflow-x-auto max-w-full">
+        <button id="themeToggle" type="button" class="theme-toggle mr-1" title="Theme" aria-label="Change theme">&#9681;</button>`,
+    "nav shell + theme toggle"
   );
 
   return { html, replacements };

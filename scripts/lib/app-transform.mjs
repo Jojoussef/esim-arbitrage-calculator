@@ -97,6 +97,7 @@ export function transformApp({
   <meta name="twitter:title" content="${esc(site.title ?? site.name)}">
   <meta name="twitter:description" content="${esc(site.description)}">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="styles.css">
   <script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
@@ -108,10 +109,10 @@ export function transformApp({
     operatingSystem: "Any",
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     featureList: [
-      "Checkout currency arbitrage across 20 currencies",
-      "Duration price inversion detection",
-      "Competitor break-even analysis",
-      "iOS app visibility check",
+      "Compare eSIM prices across 20 currencies",
+      "Find the cheapest checkout currency",
+      "Spot plans priced cheaper for longer",
+      "Compare eSIM providers on price",
     ],
     author: { "@type": "Person", name: site.author },
   }).replace(/</g, "\\u003c")}</script>`;
