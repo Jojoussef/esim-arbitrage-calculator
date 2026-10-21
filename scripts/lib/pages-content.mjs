@@ -5,6 +5,7 @@
 import { esc, fmt, rankCurrencies, toUsd, currencySymbol } from "./analysis.mjs";
 import { renderPage, url } from "./layout.mjs";
 import { statCard } from "./pages-destinations.mjs";
+import { renderAdvertiseBlock, renderDataLicenseBlock } from "./lead-gen.mjs";
 
 /** A simple static page wrapper (privacy, disclosure, ...). */
 export function buildStaticPage({ site, stats, slug, title, description, nav, body, priority = 0.4 }) {
@@ -273,7 +274,7 @@ export function buildMethodologyPage({ site, stats, catalog, fx, competitors, tr
 }
 
 /** The guides hub: links to the editorial posts. */
-export function buildGuidesIndex({ site, stats, guideIndex }) {
+export function buildGuidesIndex({ site, stats, guideIndex, monetization }) {
   const cards = guideIndex
     .map(
       (guide) => `<a href="${esc(url(site, `/guides/${guide.slug}/`))}" class="block rounded-2xl border border-slate-200 bg-white hover:border-teal-300 hover:shadow-md transition p-5">
@@ -292,7 +293,9 @@ export function buildGuidesIndex({ site, stats, guideIndex }) {
   </section>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
     ${cards}
-  </div>`;
+  </div>
+  ${renderAdvertiseBlock(monetization ?? {})}
+  ${renderDataLicenseBlock(monetization ?? {})}`;
 
   return buildStaticPage({
     site,

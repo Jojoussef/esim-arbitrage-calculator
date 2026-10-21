@@ -32,6 +32,8 @@ import { stripOwnerTools } from "./lib/strip-owner-tools.mjs";
 import { applyUserVoice } from "./lib/app-copy.mjs";
 import { buildHero, pickQuickDestinations } from "./lib/app-hero.mjs";
 import { buildThemeCss, themeBootstrapScript, themeToggleScript } from "./lib/theme.mjs";
+import { intentCaptureScript } from "./lib/intent-capture.mjs";
+import { buildAdvertisePage, buildMediaKitText } from "./lib/vendor-pitch.mjs";
 import { analyseDestination, renderDestinationBody } from "./lib/pages-destinations.mjs";
 import {
   buildDestinationsIndex,
@@ -65,6 +67,7 @@ function main() {
   // ------------------------------------------------------------ inputs --
   const site = readJson("config/site.json");
   const affiliateConfig = readJson("config/affiliates.json");
+  const monetization = readJson("config/monetization.json");
   const catalog = readJson("data/catalog.json");
   const fx = readJson("data/fx.json");
   const competitors = readJson("data/competitors.json");
@@ -150,7 +153,7 @@ function main() {
   // page still works and simply follows the OS preference.
   appHtml = appHtml.replace(
     `  </body>`,
-    `  <script>${themeToggleScript()}</script>\n  </body>`
+    `  <script>${themeToggleScript()}</script>\n  <script>${intentCaptureScript(monetization)}</script>\n  </body>`
   );
 
   // ---- the hero: promise, proof, and a way straight in ----
@@ -187,7 +190,7 @@ function main() {
       }))
       .slice(0, 6);
 
-    const body = renderDestinationBody({ site, stats, a, slug, tracker, related });
+    const body = renderDestinationBody({ site, stats, a, slug, tracker, related, monetization });
 
     // Titles and descriptions answer the searcher's question, not the
     // method. "How much does an eSIM cost in X" is what people type.
@@ -242,7 +245,7 @@ function main() {
     buildDestinationsIndex({ site, stats, catalog, analyses, slugs, tracker }),
     buildInversionsPage({ site, stats, catalog, tracker }),
     buildFxAuditPage({ site, stats, catalog, fx, tracker }),
-    buildGuidesIndex({ site, stats, guideIndex: guidePages.index }),
+    buildGuidesIndex({ site, stats, guideIndex: guidePages.index, monetization }),
     buildMethodologyPage({ site, stats, catalog, fx, competitors, tracker }),
     buildStaticPage({
       site,
@@ -271,6 +274,24 @@ function main() {
     pages.push(hub.page);
   }
   console.log(`generated ${hubs.length} hub pages`);
+
+  // ------------------------------------- 4b. the vendor media kit ------
+  // The affiliate programmes rejected the publisher, so the route to
+  // revenue is a direct sale of placement to the vendors. This page is the
+  // pitch, and kit.txt is the briefing to paste into an email.
+  const advertise = buildAdvertisePage({
+    site,
+    stats,
+    catalog,
+    monetization,
+  });
+  write(advertise.path, advertise.html);
+  pages.push(advertise.page);
+  write(
+    "advertise/kit.txt",
+    buildMediaKitText({ site, stats, catalog, monetization })
+  );
+  console.log("generated the vendor media kit (/advertise/ + kit.txt)");
 
   // ------------------------------------------------------- 5. assets --
   cpSync(resolve(ROOT, "src/styles.css"), resolve(DIST, "styles.css"));

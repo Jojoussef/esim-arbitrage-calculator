@@ -20,6 +20,7 @@ import {
   currencySymbol,
 } from "./analysis.mjs";
 import { url } from "./layout.mjs";
+import { renderSponsorSlot } from "./lead-gen.mjs";
 
 /** Small stat tile used at the top of destination pages. */
 export function statCard(label, value, tone = "slate") {
@@ -114,7 +115,7 @@ export function analyseDestination({ catalog, fx, competitors, product }) {
 }
 
 /** Render the per-destination comparison body. */
-export function renderDestinationBody({ site, stats, a, slug, tracker, related }) {
+export function renderDestinationBody({ site, stats, a, slug, tracker, related, monetization }) {
   const { product, bestCcy, worstCcy, headlineDay } = a;
   // The headline is the 7-day plan: a 1-day plan is the cheapest total but
   // is not what a traveller is shopping for.
@@ -198,6 +199,16 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
 
   const holaflyHref = tracker.link("holafly", slug);
 
+  // ---- the sponsored slot (a paid placement, always labelled) ----
+  // Sponsorships are a flat monthly fee, not a commission, so they do not
+  // need an approved affiliate account. The slot is visually separated
+  // from the comparison results and labelled "Sponsored".
+  const slots = monetization?.models?.sponsorship?.slots ?? [];
+  const sponsorSlot =
+    monetization?.models?.sponsorship?.enabled && slots.length
+      ? renderSponsorSlot(slots[0])
+      : "";
+
   return `
   <nav aria-label="Breadcrumb" class="text-xs text-slate-500 mb-4">
     <a href="${esc(url(site, "/"))}" class="hover:text-teal-700">Calculator</a>
@@ -280,6 +291,7 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
     </div>
 
     <aside class="space-y-6">
+      ${sponsorSlot}
       <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sticky top-24">
         <h2 class="text-base font-bold text-slate-900 mb-1">Who to buy from</h2>
         <p class="text-xs text-slate-500 mb-4">The same trip priced by each provider, so you can see who is cheapest. We may earn a commission if you buy &mdash; it costs you nothing extra.</p>

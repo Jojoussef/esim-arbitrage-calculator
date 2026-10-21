@@ -1,0 +1,127 @@
+{
+  "_comment": [
+    "Monetisation model. The affiliate programmes rejected the publisher, so",
+    "the site no longer earns a commission per click. The engine below sells",
+    "the same asset three different ways:",
+    "",
+    "  1. LEAD_GEN      - a vendor pays for a QUALIFIED intent signal",
+    "                    (destination + trip length + currency). This is the",
+    "                    primary model: it does not need a cookie and it does",
+    "                    not need an approved affiliate account.",
+    "  2. SPONSORSHIP   - a fixed monthly fee for a clearly-labelled slot.",
+    "  3. DISPLAY       - ad-network fallback so the site earns something",
+    "                    from passive traffic even with no sponsors.",
+    "  4. DATA_LICENSE  - the catalogue itself sold as a product.",
+    "",
+    "Every model is optional and off by default. Nothing on the site is",
+    "monetised until a network is configured here, so the build never",
+    "renders a broken or empty ad slot."
+  ],
+  "models": {
+    "lead_gen": {
+      "enabled": false,
+      "label": "Advertise with us",
+      "blurb": "Reach travellers who have already chosen a destination, a trip length and a budget.",
+      "contact": "partnerships@youssef-benatti.me",
+      "site": "https://youssef-benatti.me/esim-arbitrage-calculator",
+      "pricing_note": "Per qualified lead, or a flat monthly sponsorship.",
+      "providers": [
+        {
+          "key": "holafly",
+          "name": "Holafly",
+          "state": "not_contacted",
+          "note": ""
+        },
+        {
+          "key": "saily",
+          "name": "Saily",
+          "state": "not_contacted"
+        },
+        {
+          "key": "airalo",
+          "name": "Airalo",
+          "state": "not_contacted"
+        },
+        {
+          "key": "nomad",
+          "name": "Nomad",
+          "state": "not_contacted"
+        },
+        {
+          "key": "yesim",
+          "name": "Yesim",
+          "state": "not_contacted"
+        },
+        {
+          "key": "jetpac",
+          "name": "Jetpac",
+          "state": "not_contacted"
+        },
+        {
+          "key": "cellesim",
+          "name": "Cellesim",
+          "state": "not_contacted"
+        }
+      ]
+    },
+    "sponsorship": {
+      "enabled": false,
+      "label": "Sponsored",
+      "blurb": "A clearly labelled placement, separated from the comparison results.",
+      "slots": []
+    },
+    "display": {
+      "enabled": false,
+      "network": "none",
+      "client": "",
+      "slots": []
+    },
+    "data_license": {
+      "enabled": false,
+      "label": "Licence the dataset",
+      "blurb": "Clean, structured connectivity pricing and coverage data for travel and telecom products.",
+      "contact": "partnerships@youssef-benatti.me",
+      "products": [
+        {
+          "key": "price-matrix",
+          "name": "Full price matrix",
+          "description": "Every plan variant, every duration and every currency price point.",
+          "format": "JSON + CSV"
+        },
+        {
+          "key": "coverage-matrix",
+          "name": "Carrier coverage matrix",
+          "description": "Which carriers serve which destination, with 5G and tethering flags.",
+          "format": "JSON + CSV"
+        },
+        {
+          "key": "pricing-errors",
+          "name": "Pricing error feed",
+          "description": "Duration inversions and duplicate-price conflicts, refreshed monthly.",
+          "format": "JSON + CSV"
+        },
+        {
+          "key": "ios-visibility",
+          "name": "iOS app visibility diff",
+          "description": "Which plan durations are purchasable on the web but hidden in the vendor's iOS app.",
+          "format": "JSON + CSV"
+        }
+      ]
+    }
+  },
+  "intent": {
+    "_comment": [
+      "The intent signal. A visitor who picks a destination, a trip length",
+      "and a currency is someone about to buy. This is what a vendor pays",
+      "for, and it is worth far more than a click."
+    ],
+    "capture": true,
+    "fields": [
+      "destination",
+      "days",
+      "currency",
+      "hotspot"
+    ],
+    "endpoint": ""
+  }
+}

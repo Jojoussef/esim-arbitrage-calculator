@@ -184,6 +184,84 @@ if (voiceFailures === 0) {
   ok(`no owner-voice copy, dev jargon or leaked tooling in ${indexableFiles.length} pages`);
 }
 
+// ------------------------------------------- monetisation config checks --
+/**
+ * The monetisation config is the contract for how the site earns. A broken
+ * slot (missing label, no href, not marked sponsored) would either render
+ * an empty box or, worse, an unlabelled advertisement.
+ */
+const monetization = (() => {
+  try {
+    return JSON.parse(
+      readFileSync(resolve(ROOT, "config/monetization.json"), "utf8")
+    );
+  } catch {
+    fail("config/monetization.json could not be read");
+    return null;
+  }
+})();
+
+if (monetization) {
+  const models = monetization.models ?? {};
+
+  // Sponsored slots must be labelled and must carry rel="sponsored".
+  if (models.sponsorship?.enabled) {
+    const slots = models.sponsorship.slots ?? [];
+    if (!slots.length) {
+      fail("sponsorship is enabled but no slots are configured");
+    }
+    for (const slot of slots) {
+      if (!slot.name) fail("a sponsored slot has no name");
+      if (!slot.href) fail(`sponsored slot "${slot.name}" has no href`);
+      if (!slot.blurb) fail(`sponsored slot "${slot.name}" has no blurb`);
+    }
+  }
+
+  // The lead-gen model needs a contact address or it cannot be sold.
+  if (models.lead_gen?.enabled) {
+    const contact = models.lead_gen.contact ?? "";
+    if (!contact.includes("@")) {
+      fail("lead_gen is enabled but has no contact email address");
+    }
+  }
+
+  // Data licensing needs the same.
+  if (models.data_license?.enabled) {
+    const contact = models.data_license.contact ?? "";
+    if (!contact.includes("@")) {
+      fail("data_license is enabled but has no contact email address");
+    }
+    if (!(models.data_license.products ?? []).length) {
+      fail("data_license is enabled but lists no products");
+    }
+  }
+
+  // A configured lead endpoint means the site transmits intent. That must
+  // be a deliberate, absolute URL - and the privacy page must say so.
+  const endpoint = monetization.intent?.endpoint ?? "";
+  if (endpoint) {
+    if (!/^https:\/\//.test(endpoint)) {
+      fail(`the lead endpoint must be https, got "${endpoint}"`);
+    }
+  }
+
+  // A PAID placement (a sponsorship slot) must carry a visible label.
+  // Note this is different from an AFFILIATE link: an affiliate link is
+  // covered by the site-wide disclosure bar, while a paid placement has to
+  // be labelled next to the placement itself.
+  for (const file of indexableFiles) {
+    const html = readFileSync(file, "utf8");
+    const rel = "/" + relative(DIST, file).replace(/\\/g, "/");
+    const hasPaidSlot =
+      html.includes("Paid placement") || html.includes('aria-label="Sponsored placement"');
+    if (hasPaidSlot && !/Sponsored/.test(html)) {
+      fail(`${rel}: has a paid placement but no visible "Sponsored" label`);
+    }
+  }
+
+  ok("monetisation config is valid");
+}
+
 // ------------------------------------------- calculator-specific checks --
 const appHtml = readFileSync(join(DIST, "index.html"), "utf8");
 
