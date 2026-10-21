@@ -22,6 +22,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 import { esc, fmt, buildSlugs, computeStats } from "./lib/analysis.mjs";
 import { createAffiliateTracker } from "./lib/affiliates.mjs";
@@ -211,9 +212,16 @@ function main() {
 
   // ------------------------------------------------- 6. sitemap/robots --
   write("sitemap.xml", buildSitemap(site, pages));
+
+  // ------------------------------- 6b. social post kit (roadmap phase 3) --
+  // Written last because it needs the final numbers from the built pages.
+  execFileSync(process.execPath, [resolve(ROOT, "scripts/social-posts.mjs")], {
+    cwd: ROOT,
+    stdio: "inherit",
+  });
   write(
     "robots.txt",
-    `User-agent: *\nAllow: /\n\nSitemap: ${site.canonical_base}/sitemap.xml\n`
+    `User-agent: *\nAllow: /\nDisallow: /social/\n\nSitemap: ${site.canonical_base}/sitemap.xml\n`
   );
 
   // ------------------------------------------------------- 7. 404 page --

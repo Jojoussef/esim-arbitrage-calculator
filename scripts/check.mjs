@@ -56,10 +56,17 @@ const files = walk(DIST);
 const htmlFiles = files.filter((f) => f.endsWith(".html"));
 const relHtml = htmlFiles.map((f) => "/" + relative(DIST, f).replace(/\\/g, "/"));
 
-console.log(`checking ${htmlFiles.length} HTML files in dist/\n`);
+// Pages that are intentionally noindex (e.g. the social post kit) are not
+// part of the public site surface, so SEO checks do not apply to them.
+const isNoIndex = (file) =>
+  /<meta name="robots" content="[^"]*noindex/.test(readFileSync(file, "utf8"));
+
+const indexableFiles = htmlFiles.filter((f) => !isNoIndex(f));
+
+console.log(`checking ${indexableFiles.length} indexable HTML files in dist/\n`);
 
 // ------------------------------------------------------- per-page checks --
-for (const file of htmlFiles) {
+for (const file of indexableFiles) {
   const html = readFileSync(file, "utf8");
   const rel = "/" + relative(DIST, file).replace(/\\/g, "/");
 

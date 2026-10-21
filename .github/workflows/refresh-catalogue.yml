@@ -1,0 +1,58 @@
+name: Monthly Catalogue Refresh
+
+# Roadmap Sprint 4.2: the vendor catalogue is re-scraped monthly. When the
+# refreshed data lands in data/, this workflow rebuilds and redeploys.
+#
+# The scraper itself is intentionally NOT automated here: it needs a throttle
+# (time.sleep(2.5) between requests) and the 140 destinations that previously
+# returned HTTP 429 need the slow path. Run it manually, commit the updated
+# data/*.json, and this workflow publishes the result.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build site
+        run: node scripts/build.mjs
+
+      - name: Check monetisation & SEO invariants
+        run: node scripts/check.mjs
+
+      - name: Validate structure
+        run: node scripts/validate.mjs
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: rebuild
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
