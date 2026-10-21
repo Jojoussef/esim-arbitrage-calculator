@@ -9,6 +9,9 @@
     "extract": "node scripts/extract_data.mjs",
     "serve": "node scripts/serve.mjs",
     "check": "node scripts/check.mjs",
+    "validate": "node scripts/validate.mjs",
+    "check:dns": "node scripts/check-dns.mjs",
+    "social": "node scripts/social-posts.mjs",
     "deploy": "node scripts/build.mjs && node scripts/deploy.mjs"
   },
   "engines": {

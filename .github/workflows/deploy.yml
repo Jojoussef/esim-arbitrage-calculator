@@ -41,6 +41,13 @@ jobs:
       - name: Validate structure
         run: node scripts/validate.mjs
 
+      # Warns (does not fail) if the custom domain has drifted away from
+      # GitHub Pages - a registrar-level DNS change can break the site
+      # without touching this repository at all.
+      - name: Check custom domain DNS
+        continue-on-error: true
+        run: node scripts/check-dns.mjs
+
       - name: Upload the built site
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
