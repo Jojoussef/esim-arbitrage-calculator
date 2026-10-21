@@ -99,6 +99,8 @@ function main() {
   const git = (args) =>
     execFileSync("git", args, { cwd: work, stdio: "inherit" });
 
+  // A fresh `git init` means the published tree is EXACTLY the build - no
+  // leftover files from a previous deploy can survive.
   git(["init", "--quiet", "--initial-branch", BRANCH]);
   git(["add", "-A"]);
   git([

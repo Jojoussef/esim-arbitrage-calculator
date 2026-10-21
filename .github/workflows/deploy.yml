@@ -41,11 +41,14 @@ jobs:
       - name: Validate structure
         run: node scripts/validate.mjs
 
-      - name: Upload Pages artifact
+      - name: Upload the built site
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: site
           path: dist
+          include-hidden-files: true
+          retention-days: 7
 
   deploy:
     needs: build
@@ -62,7 +65,7 @@ jobs:
       - name: Download the built site
         uses: actions/download-artifact@v4
         with:
-          name: github-pages
+          name: site
           path: dist
 
       - name: Publish to the gh-pages branch
