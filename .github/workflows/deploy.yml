@@ -51,13 +51,12 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # No `environment: github-pages` here on purpose. That environment is
+    # restricted to the gh-pages branch, so a job running from main would be
+    # rejected at the environment gate before it even starts. We publish by
+    # pushing to the gh-pages branch, which is the same model the local
+    # deploy script uses - so CI and local deploys stay identical.
     steps:
-      # Pages publishes from the gh-pages branch, so push the built tree
-      # there. This is the same publishing model the local deploy script
-      # uses, which keeps CI and local deploys identical.
       - name: Publish to the gh-pages branch
         uses: actions/checkout@v4
         with:

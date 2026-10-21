@@ -49,9 +49,8 @@ jobs:
   deploy:
     needs: rebuild
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # No `environment: github-pages` - that environment only permits the
+    # gh-pages branch, and this job runs from main. See deploy.yml.
     steps:
       - name: Publish to the gh-pages branch
         uses: actions/checkout@v4
