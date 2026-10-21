@@ -128,7 +128,7 @@ export function inversionGuideBody({ site, stats, catalog, tracker }) {
   <article class="max-w-3xl mx-auto">
     <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Pricing bugs</span>
     <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">Buying an Extra Day Is Cheaper</h1>
-    <p class="text-sm text-slate-600 mt-3">We scanned every destination, every currency and every duration in the eSIM catalogue. In <strong>${stats.inversions}</strong> cases, the longer plan is listed at a <em>lower</em> total price than the shorter one. Here is what that is worth, and why the iOS app hides most of it.</p>
+    <p class="text-sm text-slate-600 mt-3">Every destination, currency and duration in the eSIM catalogue was checked. In <strong>${stats.inversions}</strong> cases, the longer plan is listed at a <em>lower</em> total price than the shorter one. Here is what that is worth, and why the iOS app hides most of it.</p>
 
     ${
       biggest
@@ -169,7 +169,7 @@ export function inversionGuideBody({ site, stats, catalog, tracker }) {
       <li>Confirm the total really is lower before paying.</li>
     </ol>
 
-    ${ctaBlock(site, tracker, "inversions", "Load the inversion straight into the calculator", "The calculator has a preset button for each notable inversion, so you can jump straight to the destination, duration and currency that saves the most.")}
+    ${ctaBlock(site, tracker, "inversions", "Load the inversion straight into the calculator", "The calculator takes you straight to the destination, duration and currency that saves the most, so you can check the real price before you buy.")}
   </article>`;
 }
 

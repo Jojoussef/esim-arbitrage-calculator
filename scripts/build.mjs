@@ -189,8 +189,20 @@ function main() {
 
     const body = renderDestinationBody({ site, stats, a, slug, tracker, related });
 
-    const title = `eSIM Prices in ${a.product.name} (${a.product.iso}) — Cheapest Checkout Currency & Duration | 2026`;
-    const description = `Compare eSIM prices in ${a.product.name} across ${stats.currencies} currencies, find the cheapest checkout currency and catch duration price inversions. ${stats.prices.toLocaleString("en-US")} audited prices across ${stats.destinations} destinations.`;
+    // Titles and descriptions answer the searcher's question, not the
+    // method. "How much does an eSIM cost in X" is what people type.
+    // The 7-day plan is the headline: a 1-day plan is the cheapest total
+    // but is not what a traveller is shopping for.
+    const headlineRow =
+      a.durationRows.find((row) => row.day === 7) ?? a.cheapestDuration;
+    const cheapest = headlineRow ? `$${fmt(headlineRow.usdEq, 2)}` : "—";
+    const bestCcy = a.bestCcy?.ccy ?? "USD";
+    const savePct = a.savingPct
+      ? ` Pay in ${bestCcy} to save ${fmt(a.savingPct, 1)}%.`
+      : "";
+
+    const title = `How Much Does an eSIM Cost in ${a.product.name}? (2026 Prices)`;
+    const description = `A 7-day ${a.product.plantype.toLowerCase()} eSIM for ${a.product.name} costs ${cheapest}, checked across ${stats.currencies} currencies.${savePct} Full price table for all ${a.days.length} trip lengths.`;
 
     const page = {
       path: `/destinations/${slug}/`,

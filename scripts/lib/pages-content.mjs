@@ -43,7 +43,7 @@ export function buildDestinationsIndex({ site, stats, catalog, analyses, slugs, 
   const body = `
   <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7 mb-6">
     <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">All ${stats.destinations} audited destinations</h1>
-    <p class="text-sm text-slate-600 mt-2 max-w-3xl">Every destination in the Oct 2026 vendor catalogue, with the cheapest checkout currency and the cheapest plan we found. Each page shows the full duration price ladder, currency ranking and the cheapest competing provider.</p>
+    <p class="text-sm text-slate-600 mt-2 max-w-3xl">Every destination in the Oct 2026 vendor catalogue, with the cheapest checkout currency and the cheapest plan available. Each page shows the full price ladder, what every currency really costs, and which provider is cheapest.</p>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
       ${statCard("Destinations", String(stats.destinations))}
       ${statCard("Currencies", String(stats.currencies), "teal")}
@@ -60,7 +60,7 @@ export function buildDestinationsIndex({ site, stats, catalog, analyses, slugs, 
     stats,
     slug: "destinations",
     title: `All ${stats.destinations} eSIM Destinations Audited — Cheapest Prices & Currencies | 2026`,
-    description: `Browse all ${stats.destinations} eSIM destinations we audited: ${stats.prices.toLocaleString("en-US")} prices across ${stats.currencies} currencies, with the cheapest checkout currency for every country and region.`,
+    description: `Browse all ${stats.destinations} eSIM destinations: ${stats.prices.toLocaleString("en-US")} prices across ${stats.currencies} currencies, with the cheapest checkout currency for every country and region.`,
     nav: "destinations",
     body,
     priority: 0.9,
@@ -393,7 +393,7 @@ export function disclosureBody(site, stats, affiliateConfig) {
 
       <section>
         <h2 class="font-bold text-slate-900 mb-1">How the price data is collected</h2>
-        <p class="text-xs text-slate-600">Prices come from the vendor's own published catalogue, captured on ${esc(site.data_as_of)}, and converted to USD using the ECB euro reference rate and IBAN rates. We do not receive special pricing, hidden discounts or preferential treatment. If our affiliate relationship ever did change a price, we would not show that price. The full method is on the <a href="${esc(url(site, "/methodology/"))}" class="text-teal-600 underline">methodology page</a>.</p>
+        <p class="text-xs text-slate-600">Prices come from the vendor's own published catalogue, captured on ${esc(site.data_as_of)}, and converted to USD using the ECB euro reference rate and IBAN rates. We do not receive special pricing, hidden discounts or preferential treatment. If our affiliate relationship ever did change a price, we would not show that price. The full method is on the <a href="${esc(url(site, "/methodology/"))}" class="text-teal-600 underline">how we check prices page</a>.</p>
       </section>
 
       <section>

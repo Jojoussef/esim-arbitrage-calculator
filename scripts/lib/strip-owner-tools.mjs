@@ -188,11 +188,18 @@ export function stripOwnerTools(html) {
     "btnExportHtml",
     "btnExportJson",
     "btnExportCsv",
+    "btnDownloadHtml",
+    "btnDownloadJson",
+    "btnDownloadCsv",
   ]) {
     const before = html;
     html = removeListenerBlock(html, id);
     if (before !== html) removed.push(`${id} handler`);
   }
+
+  // The export section's own heading comments are left dangling otherwise.
+  html = replaceAll(html, `      // Wire Tab 4 Affiliate Studio\n`, "");
+  html = replaceAll(html, `      // Wire Export Buttons\n`, "");
 
   // ---- 5. the sprint checklist renderer + its call sites ----
   for (const fn of ["renderSprintChecklist", "updateSprintProgress"]) {

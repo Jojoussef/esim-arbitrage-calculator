@@ -86,6 +86,104 @@ for (const file of indexableFiles) {
   }
 }
 
+// ------------------------------------------------- voice / leak checks --
+/**
+ * The site is for travellers. It must not describe itself in the operator's
+ * voice, and it must not ship the operator's private tooling.
+ */
+
+// Markers that mean "this page is talking about the audit, not the trip".
+const OWNER_VOICE = [
+  /\bwe (audited|scanned|found|analysed|analyzed|checked)\b/i,
+  /\bour (methodology|audit|snapshot|scrape)\b/i,
+  /\bdata grounding\b/i,
+  /\bthe methodology\b/i,
+  /\bthis audit\b/i,
+];
+
+// Developer / project jargon that has no place on a public page.
+const DEV_JARGON = [
+  /\bSprint \d/i,
+  /\bHacker\b/i,
+  /\bpreset button\b/i,
+  /\bbuild-time\b/i,
+  /\bmicro-sprint\b/i,
+  /\bexport bundle\b/i,
+  /\baffiliate studio\b/i,
+  /\btracking tracker\b/i,
+];
+
+// Owner-only markup that must never reach the public build.
+const OWNER_LEAKS = [
+  "viewDeploy",
+  "tabBtnDeploy",
+  "affSaily",
+  "affAiralo",
+  "affNomad",
+  "affHolafly",
+  "btnSaveAffiliates",
+  "btnResetAffiliates",
+  "renderSprintChecklist",
+  "Micro-Sprint",
+  "1-Click Export Bundle",
+  "holafly_clean.json",
+];
+
+// Strip markup so the checks read the words a visitor actually sees.
+const visibleText = (html) =>
+  html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+let voiceFailures = 0;
+
+/**
+ * Pages that are allowed to speak in the first person.
+ *
+ * /methodology/ exists precisely to explain how the prices are checked, so
+ * "we checked" is the right voice there. Everywhere else the page is
+ * talking to a traveller about their trip.
+ */
+const FIRST_PERSON_ALLOWED = new Set(["/methodology/index.html"]);
+
+for (const file of indexableFiles) {
+  const html = readFileSync(file, "utf8");
+  const rel = "/" + relative(DIST, file).replace(/\\/g, "/");
+  const text = visibleText(html);
+
+  if (!FIRST_PERSON_ALLOWED.has(rel)) {
+    for (const pattern of OWNER_VOICE) {
+      if (pattern.test(text)) {
+        fail(`${rel}: owner-voice copy -> ${pattern}`);
+        voiceFailures += 1;
+      }
+    }
+  }
+
+  for (const pattern of DEV_JARGON) {
+    if (pattern.test(text)) {
+      fail(`${rel}: developer jargon -> ${pattern}`);
+      voiceFailures += 1;
+    }
+  }
+
+  for (const leak of OWNER_LEAKS) {
+    if (html.includes(leak)) {
+      fail(`${rel}: owner tooling leaked into the public build -> "${leak}"`);
+      voiceFailures += 1;
+    }
+  }
+}
+
+if (voiceFailures === 0) {
+  ok(`no owner-voice copy, dev jargon or leaked tooling in ${indexableFiles.length} pages`);
+}
+
 // ------------------------------------------- calculator-specific checks --
 const appHtml = readFileSync(join(DIST, "index.html"), "utf8");
 

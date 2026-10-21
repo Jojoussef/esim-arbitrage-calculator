@@ -116,8 +116,12 @@ export function analyseDestination({ catalog, fx, competitors, product }) {
 /** Render the per-destination comparison body. */
 export function renderDestinationBody({ site, stats, a, slug, tracker, related }) {
   const { product, bestCcy, worstCcy, headlineDay } = a;
-  const headlinePrice = a.cheapestDuration ? `$${fmt(a.cheapestDuration.usdEq, 2)}` : "—";
-  const headlineDays = a.cheapestDuration?.day ?? headlineDay;
+  // The headline is the 7-day plan: a 1-day plan is the cheapest total but
+  // is not what a traveller is shopping for.
+  const headlineRow =
+    a.durationRows.find((row) => row.day === 7) ?? a.cheapestDuration;
+  const headlinePrice = headlineRow ? `$${fmt(headlineRow.usdEq, 2)}` : "—";
+  const headlineDays = headlineRow?.day ?? headlineDay;
   const carrierList = product.carriers.split(" - ").slice(0, 4).join(", ");
 
   const currencyRows = a.ranking.rows
@@ -207,8 +211,8 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
         <span class="text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">${esc(product.type)} &middot; ${esc(product.iso)}</span>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">eSIM Prices in ${esc(product.name)}</h1>
-        <p class="text-sm text-slate-600 mt-2 max-w-2xl">${esc(product.plantype)} plan on ${esc(carrierList)}${product.has5g ? ", 5G" : ", 4G"}. Hotspot capped at ${esc(product.tether_mb)} MB/day${product.tether_accum ? " with rollover" : " without rollover"}. Audited ${esc(site.data_as_of)}.</p>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">How Much Does an eSIM Cost in ${esc(product.name)}?</h1>
+        <p class="text-sm text-slate-600 mt-2 max-w-2xl">The cheapest ${esc(product.plantype)} plan for ${esc(product.name)} is <strong>${esc(headlinePrice)}</strong> for ${esc(headlineDays)} days. Pay in ${esc(bestCcy?.ccy ?? "USD")} at checkout to save another ${fmt(a.savingPct, 1)}%. Works on ${esc(carrierList)}${product.has5g ? ", 5G" : ", 4G"}. Hotspot capped at ${esc(product.tether_mb)} MB/day${product.tether_accum ? ", with rollover" : ""}.</p>
       </div>
       <div class="text-right">
         <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Cheapest ${esc(product.plantype)} plan</div>
@@ -217,10 +221,10 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
       </div>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-      ${statCard("Durations sold", String(a.days.length))}
-      ${statCard("Currencies priced", String(a.ranking.rows.length), "teal")}
-      ${statCard("Cheapest currency", bestCcy ? bestCcy.ccy : "—", "teal")}
-      ${statCard("iOS-hidden durations", String(a.hiddenCount), a.hiddenCount ? "amber" : "slate")}
+      ${statCard("Trip lengths available", String(a.days.length))}
+      ${statCard("Pay in", bestCcy ? bestCcy.ccy : "—", "teal")}
+      ${statCard("Save by switching currency", bestCcy ? `${fmt(a.savingPct, 0)}%` : "—", "teal")}
+      ${statCard("Only in the web checkout", String(a.hiddenCount), a.hiddenCount ? "amber" : "slate")}
     </div>
   </section>
 
@@ -228,11 +232,11 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
     <div class="lg:col-span-2 space-y-6">
 
       <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <span class="text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">Hack #1 &middot; Checkout Currency Arbitrage</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">Save money at checkout</span>
         <h2 class="text-lg font-bold text-slate-900 mt-3 mb-1">Pay in ${esc(bestCcy?.ccy ?? "USD")}, not ${esc(worstCcy?.ccy ?? "USD")}</h2>
-        <p class="text-xs text-slate-500 mb-4">The same ${esc(headlineDay)}-day ${esc(product.name)} plan is priced in ${a.ranking.rows.length} currencies. Converted to USD at the Oct 2026 ECB/IBAN spot rate, the spread below is pure checkout arbitrage &mdash; no code, no voucher, just change the currency selector.</p>
+        <p class="text-xs text-slate-500 mb-4">The same ${esc(headlineDay)}-day ${esc(product.name)} plan is sold in ${a.ranking.rows.length} currencies. Here is what each one costs in dollars, so you can pick the cheapest one at checkout.</p>
         <div class="rounded-xl bg-teal-50/90 border border-teal-200 p-3.5 text-xs text-teal-900 mb-4">
-          <strong>Verdict:</strong> switching the checkout currency to <strong>${esc(bestCcy?.ccy ?? "—")}</strong> saves <strong>$${fmt(a.savingAbs, 2)} (${fmt(a.savingPct, 1)}% off)</strong> versus paying in USD. Avoid <strong>${esc(worstCcy?.ccy ?? "—")}</strong> &mdash; it costs ~$${fmt(worstCcy?.usdEquivalent ?? 0, 2)}, ${fmt(worstCcy?.diffPct ?? 0, 1)}% above the USD price.
+          <strong>Switch the currency selector to ${esc(bestCcy?.ccy ?? "—")} and you save $${fmt(a.savingAbs, 2)} (${fmt(a.savingPct, 1)}% off)}</strong> compared with paying in USD. Avoid ${esc(worstCcy?.ccy ?? "—")} &mdash; it costs $${fmt(worstCcy?.usdEquivalent ?? 0, 2)}, ${fmt(worstCcy?.diffPct ?? 0, 1)}% more.
         </div>
         <div class="table-scroll border border-slate-200 rounded-xl">
           <table class="w-full text-left border-collapse text-xs">
@@ -244,9 +248,9 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
         </div>
       </section>
       <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Hack #2 &middot; Duration Inversion</span>
-        <h2 class="text-lg font-bold text-slate-900 mt-3 mb-1">Where buying an extra day costs less</h2>
-        <p class="text-xs text-slate-500 mb-4">${a.destInversions.length ? `We found ${a.destInversions.length} duration inversion${a.destInversions.length === 1 ? "" : "s"} in ${esc(product.name)}. Each row means the longer plan is genuinely cheaper than the shorter one.` : `No duration inversion in ${esc(product.name)} &mdash; prices rise monotonically here.`}</p>
+        <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Longer plans, lower price</span>
+        <h2 class="text-lg font-bold text-slate-900 mt-3 mb-1">${a.destInversions.length ? `Some longer plans cost less than shorter ones` : `Prices rise with trip length here`}</h2>
+        <p class="text-xs text-slate-500 mb-4">${a.destInversions.length ? `${a.destInversions.length} trip length${a.destInversions.length === 1 ? "" : "s"} in ${esc(product.name)} ${a.destInversions.length === 1 ? "is" : "are"} cheaper than the shorter option. Each row below means you get more data for less.` : `Every longer plan in ${esc(product.name)} costs more, so pick the trip length you actually need.`}</p>
         <div class="table-scroll border border-slate-200 rounded-xl">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-100 text-slate-600 font-bold">
@@ -261,8 +265,8 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
       </section>
 
       <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
-        <h2 class="text-lg font-bold text-slate-900 mb-1">Every duration in ${esc(product.name)}</h2>
-        <p class="text-xs text-slate-500 mb-4">Total price, real USD cost and average daily rate for every plan length sold here.</p>
+        <h2 class="text-lg font-bold text-slate-900 mb-1">Every trip length, priced</h2>
+        <p class="text-xs text-slate-500 mb-4">What each plan costs in total, in dollars, and per day &mdash; so you can see which length works out best for your trip.</p>
         <div class="table-scroll border border-slate-200 rounded-xl">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-100 text-slate-600 font-bold">
@@ -271,20 +275,20 @@ export function renderDestinationBody({ site, stats, a, slug, tracker, related }
             <tbody class="divide-y divide-slate-100">${durationRows}</tbody>
           </table>
         </div>
-        ${a.hiddenCount ? `<p class="text-[11px] text-slate-500 mt-3"><strong class="text-amber-700">iOS note:</strong> ${a.hiddenCount} of these ${a.days.length} durations are not purchasable in the vendor's iOS app. Buy those on the web checkout, then the currency trick above still applies.</p>` : ""}
+        ${a.hiddenCount ? `<p class="text-[11px] text-slate-500 mt-3"><strong class="text-amber-700">Buy on the web:</strong> ${a.hiddenCount} of these ${a.days.length} trip lengths are not available in the vendor's iOS app &mdash; only on the website checkout. The currency saving above still applies there.</p>` : ""}
       </section>
     </div>
 
     <aside class="space-y-6">
       <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sticky top-24">
-        <h2 class="text-base font-bold text-slate-900 mb-1">Cheapest provider for ${esc(product.name)}</h2>
-        <p class="text-xs text-slate-500 mb-4">Verified Oct 2026 list pricing. Click through to buy &mdash; this may earn us a commission at no extra cost to you.</p>
+        <h2 class="text-base font-bold text-slate-900 mb-1">Who to buy from</h2>
+        <p class="text-xs text-slate-500 mb-4">The same trip priced by each provider, so you can see who is cheapest. We may earn a commission if you buy &mdash; it costs you nothing extra.</p>
         <div class="space-y-2.5">${providerRows}</div>
         <a href="${esc(holaflyHref)}" target="_blank" rel="sponsored noopener noreferrer" class="mt-4 block w-full text-center bg-[#0F2942] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-2.5 px-4 rounded-xl transition">
-          Open ${esc(product.name)} checkout &rarr;
+          Get ${esc(product.name)} from ${esc(headlinePrice)} &rarr;
         </a>
         <a href="${esc(url(site, `/?dest=${product.iso}`))}" class="mt-2 block w-full text-center bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 font-semibold text-xs sm:text-sm py-2.5 px-4 rounded-xl transition">
-          Open in the live calculator
+          Check a different trip length
         </a>
       </section>
 

@@ -77,7 +77,7 @@ export function buildGuides({ site, stats, catalog, fx, competitors, tracker, sl
       tag: "Pricing bugs",
       title: `Buying an Extra Day Is Cheaper: ${stats.inversions} eSIM Plans Priced Backwards`,
       excerpt:
-        "We scanned every destination and currency in the catalogue. In hundreds of cases the longer plan is listed at a lower total price than the shorter one — and the iOS app hides most of them.",
+        "In hundreds of destinations the longer plan is listed at a lower total price than the shorter one — and the iOS app hides most of them.",
     },
     inversionGuideBody({ site, stats, catalog, tracker }),
     {
