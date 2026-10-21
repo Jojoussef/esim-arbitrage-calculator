@@ -12,7 +12,7 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -55,10 +55,31 @@ function mirrorToUserSite(site, work) {
   mkdirSync(dest, { recursive: true });
   execFileSync("cp", ["-R", `${DIST}/.`, dest]);
 
+  // ---- the ROOT robots.txt + sitemap index ----
+  // This is where Google looks first. Without a robots.txt at the domain
+  // root it has no pointer to the sitemap, and the root robots.txt used to
+  // 404, which is why the sitemap "could not be read" in Search Console.
+  const rootRobots = `User-agent: *
+Allow: /
+
+Sitemap: ${site.canonical_base}/sitemap.xml
+`;
+  writeFileSync(resolve(target, "robots.txt"), rootRobots, "utf8");
+
+  const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${site.canonical_base}/sitemap.xml</loc>
+    <lastmod>${site.data_as_of}</lastmod>
+  </sitemap>
+</sitemapindex>
+`;
+  writeFileSync(resolve(target, "sitemapindex.xml"), sitemapIndex, "utf8");
+
   const git = (args) =>
     execFileSync("git", args, { cwd: target, stdio: "inherit" });
 
-  git(["add", "-A", site.mirror_path]);
+  git(["add", "-A", site.mirror_path, "robots.txt", "sitemapindex.xml"]);
   git([
     "-c",
     "user.name=github-actions[bot]",
