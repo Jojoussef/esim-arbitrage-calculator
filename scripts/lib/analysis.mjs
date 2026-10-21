@@ -168,6 +168,23 @@ export function computeStats(catalog, spotPerEur) {
     null
   );
 
+  // The largest saving available purely by switching checkout currency:
+  // the biggest gap between any currency's real USD cost and the USD price
+  // of the same plan, anywhere in the catalogue.
+  let maxFxSaving = 0;
+  let maxFxSavingCcy = null;
+  for (const product of products) {
+    for (const day of availableDays(product)) {
+      const { best, usdPrice } = rankCurrencies(product, day, ccys, spotPerEur);
+      if (!best || !usdPrice) continue;
+      const savingPct = ((usdPrice - best.usdEquivalent) / usdPrice) * 100;
+      if (savingPct > maxFxSaving) {
+        maxFxSaving = savingPct;
+        maxFxSavingCcy = best.ccy;
+      }
+    }
+  }
+
   return {
     destinations: products.length,
     currencies: ccys.length,
@@ -180,6 +197,8 @@ export function computeStats(catalog, spotPerEur) {
     iosHiddenPct: Math.round(iosHiddenPct * 10) / 10,
     maxSpread,
     biggestInversion,
+    maxFxSaving: Math.round(maxFxSaving * 10) / 10,
+    maxFxSavingCcy,
   };
 }
 

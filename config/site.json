@@ -10,11 +10,11 @@
     "dataset at build time: {prices}, {destinations}, {currencies},",
     "{variants}, {inversions}. This keeps the copy honest automatically."
   ],
-  "name": "eSIM Arbitrage & Break-Even Engine",
-  "short_name": "eSIM Arb Engine",
-  "title": "eSIM Arbitrage, FX Optimizer & Competitor Break-Even Calculator (2026)",
-  "tagline": "Live FX checkout optimizer, duration-inversion finder and 2026 competitor benchmark for 94 destinations.",
-  "description": "Compare eSIM prices across {currencies} currencies, find duration price inversions where buying more days costs less, and break-even against Holafly, Nomad, Saily, Airalo, Yesim and Jetpac. Built from {prices} audited prices across {destinations} destinations.",
+  "name": "eSIM Price Truth",
+  "short_name": "eSIM Price Truth",
+  "title": "Cheapest eSIM Prices in 20 Currencies — eSIM Price Truth (2026)",
+  "tagline": "Find the cheapest eSIM for your trip, in the currency that costs you least.",
+  "description": "Compare eSIM prices across {currencies} currencies and {destinations} destinations, find the plan that really costs least, and see which checkout currency saves you money. {prices} prices checked.",
   "author": "Youssef Benatti",
   "base_path": "/esim-arbitrage-calculator",
   "domain": "youssef-benatti.me",
@@ -27,5 +27,19 @@
   "mirror_to": "Jojoussef/Jojoussef.github.io",
   "mirror_path": "esim",
   "data_as_of": "2026-10-15",
-  "promo_code": ""
+  "promo_code": "",
+  "brand": {
+    "_comment": [
+      "User-facing identity. 'name' is the brand, 'tagline' the one-line",
+      "promise, and 'hero_*' the copy used at the top of the homepage.",
+      "Everything here is written for the traveller, not for the operator."
+    ],
+    "name": "eSIM Price Truth",
+    "hero_headline": "Find the cheapest eSIM for your trip — in 20 currencies",
+    "hero_sub": "Pick your destination and trip length. We check every price, show the currency that costs you least, and flag the plans that are priced backwards.",
+    "hero_proof": "{prices} prices checked across {destinations} destinations",
+    "proof_point_currency": "Pay in the right currency and save up to {max_fx_saving}%",
+    "proof_point_inversion": "{inversions} plans are cheaper for LONGER",
+    "proof_point_ios": "{ios_hidden_pct}% of plans aren't even in the iOS app"
+  }
 }

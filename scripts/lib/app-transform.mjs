@@ -212,25 +212,14 @@ export function hardenApp(html, { site, stats }) {
       } catch (e) {}`;
   html = replaceOnce(html, oldStorage, newStorage, "localStorage override");
 
-  // ---- correct the headline price count in the footer ----
-  html = replaceOnce(
-    html,
-    `<strong>Data Grounding:</strong> 94 products, 6,802 variants &amp; 193,378 localized prices audited against Oct 2026`,
-    `<strong>Data Grounding:</strong> ${stats.destinations} products, ${stats.variants.toLocaleString(
-      "en-US"
-    )} variants &amp; ${stats.prices.toLocaleString(
-      "en-US"
-    )} localized prices audited against Oct 2026`,
-    "footer stats"
-  );
-
   // ---- header: the stale "193,378 Prices" badge ----
+  // (the footer stats line is rewritten in traveller voice by app-copy.mjs)
   html = replaceOnce(
     html,
     `<span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">94 Dests · 193,378 Prices</span>`,
-    `<span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">${stats.destinations} Dests · ${stats.prices.toLocaleString(
+    `<span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">${stats.destinations} destinations · ${stats.prices.toLocaleString(
       "en-US"
-    )} Prices</span>`,
+    )} prices</span>`,
     "header badge"
   );
 

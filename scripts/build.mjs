@@ -28,6 +28,9 @@ import { esc, fmt, buildSlugs, computeStats } from "./lib/analysis.mjs";
 import { createAffiliateTracker } from "./lib/affiliates.mjs";
 import { renderPage, url } from "./lib/layout.mjs";
 import { transformApp, hardenApp } from "./lib/app-transform.mjs";
+import { stripOwnerTools } from "./lib/strip-owner-tools.mjs";
+import { applyUserVoice } from "./lib/app-copy.mjs";
+import { buildThemeCss, themeBootstrapScript, themeToggleScript } from "./lib/theme.mjs";
 import { analyseDestination, renderDestinationBody } from "./lib/pages-destinations.mjs";
 import {
   buildDestinationsIndex,
@@ -72,12 +75,27 @@ function main() {
 
   // Fill {placeholders} in the site description from the real dataset, so the
   // headline numbers in the copy can never drift from the data.
-  site.description = String(site.description ?? "")
-    .replace(/\{prices\}/g, stats.prices.toLocaleString("en-US"))
-    .replace(/\{destinations\}/g, String(stats.destinations))
-    .replace(/\{currencies\}/g, String(stats.currencies))
-    .replace(/\{variants\}/g, stats.variants.toLocaleString("en-US"))
-    .replace(/\{inversions\}/g, String(stats.inversions));
+  const fill = (text) =>
+    String(text ?? "")
+      .replace(/\{prices\}/g, stats.prices.toLocaleString("en-US"))
+      .replace(/\{destinations\}/g, String(stats.destinations))
+      .replace(/\{currencies\}/g, String(stats.currencies))
+      .replace(/\{variants\}/g, stats.variants.toLocaleString("en-US"))
+      .replace(/\{inversions\}/g, String(stats.inversions))
+      .replace(/\{ios_hidden_pct\}/g, String(stats.iosHiddenPct))
+      .replace(
+        /\{max_fx_saving\}/g,
+        String(Math.abs(Math.round(stats.maxFxSaving ?? 0)))
+      );
+
+  site.description = fill(site.description);
+  site.title = fill(site.title);
+  site.tagline = fill(site.tagline);
+  if (site.brand) {
+    for (const [key, value] of Object.entries(site.brand)) {
+      if (typeof value === "string") site.brand[key] = fill(value);
+    }
+  }
 
   console.log(
     `dataset: ${stats.destinations} destinations · ${stats.currencies} currencies · ` +
@@ -100,6 +118,32 @@ function main() {
     tracker,
   }).html;
   appHtml = hardenApp(appHtml, { site, stats });
+
+  // ---- strip the operator-only tooling from the public build ----
+  const stripped = stripOwnerTools(appHtml);
+  appHtml = stripped.html;
+  console.log(
+    `stripped owner tools: ${stripped.removed.length ? stripped.removed.join(", ") : "(nothing found!)"}`
+  );
+
+  // ---- rewrite the shell into traveller-facing language ----
+  const voiced = applyUserVoice(appHtml, { site, stats });
+  appHtml = voiced.html;
+  const missed = voiced.replacements.filter((r) => !r.ok).map((r) => r.label);
+  if (missed.length) {
+    console.warn(`WARNING: copy anchors not found: ${missed.join(", ")}`);
+  }
+
+  // ---- theme: inject the generated tokens + the dark-mode bootstrap ----
+  const themeCss = buildThemeCss(
+    readFileSync(resolve(ROOT, "src/theme.css"), "utf8"),
+    site
+  );
+  appHtml = appHtml.replace(
+    `  <link rel="stylesheet" href="styles.css">`,
+    `  <link rel="stylesheet" href="theme.css">\n  <link rel="stylesheet" href="styles.css">\n  <script>${themeBootstrapScript()}</script>`
+  );
+
   write("index.html", appHtml);
 
   // ------------------------------------ 2. programmatic destination pages --
@@ -196,6 +240,9 @@ function main() {
 
   // ------------------------------------------------------- 5. assets --
   cpSync(resolve(ROOT, "src/styles.css"), resolve(DIST, "styles.css"));
+  // The generated theme (tokens from config/site.json) is written here so
+  // both the app and the generated pages share one palette.
+  write("theme.css", themeCss);
   if (existsSync(resolve(ROOT, "src/assets"))) {
     cpSync(resolve(ROOT, "src/assets"), resolve(DIST, "assets"), { recursive: true });
   }
