@@ -1,0 +1,43 @@
+MEDIA KIT - eSIM Price Truth
+==================================================
+
+WHAT IT IS
+An independent comparison site for travel eSIMs. It answers the
+question every traveller asks: "how much will this actually cost me,
+and am I about to overpay?"
+
+REACH
+  94 destinations covered
+  20 currencies compared at checkout
+  136,040 individual price points checked
+  6,802 plan variants
+  160 carriers mapped
+  224 pricing errors identified
+
+WHAT VISITORS DO
+They pick a destination, a trip length, a currency and a data need,
+then see what it costs in every currency. That is a qualified lead
+minutes away from buying.
+
+THE ASSET NO VENDOR CAN PUBLISH
+  - 224 plans that cost LESS at a longer duration
+  - 4,509 plan variants sold on the web
+    but hidden in the vendor's own iOS app
+  - checkout-currency rates measured against the ECB reference rate
+
+WHAT WE OFFER
+  1. Sponsored placement - a labelled slot on every destination page.
+     Flat monthly fee. No cookie, no commission tracking, no approval
+     queue, no network. You are buying attention, not attribution.
+  2. Lead postback - destination, trip length, currency and data need
+     forwarded to your endpoint. No personal data, no identifiers.
+  3. Data licensing - the cleaned price and coverage matrices, refreshed
+     monthly, as JSON or CSV.
+
+GETTING STARTED
+Email partnerships@youssef-benatti.me with the destinations and trip lengths you care about.
+Rate card and placement mock-up within two working days.
+Placement live within a week.
+
+--
+https://youssef-benatti.me/esim-arbitrage-calculator/advertise/

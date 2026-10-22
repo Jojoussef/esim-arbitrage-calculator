@@ -1,0 +1,23 @@
+"Unlimited" eSIMs are the most expensive word in travel data. They are also the right answer for a lot of people. Here is the actual threshold.
+
+The reference price for fixed data is roughly $15 for 10GB, i.e. ~$1.50/GB.
+
+At that rate:
+• The cheapest 7-day unlimited plan I found (Nomad at $22.00) breaks even at about 14.7GB.
+
+So the threshold is roughly 20GB/week, or ~2.85GB/day.
+
+Below 2.85GB/day → fixed-GB is cheaper. Above it → unlimited wins and you stop thinking about it.
+
+Typical use for a 7-day trip is 3-8GB, so most people are nowhere near the break-even. A week of video calls, cloud backup and tethering is 20GB+, so some people are way past it.
+
+The part that actually decides it is the fine print:
+• High-speed allowance per day — once you burn it you get throttled to ~1 Mbps. Fine for email, useless for video calls.
+• Hotspot tethering cap — some plans cap tethering at 1GB/day. If you run a laptop off your phone, "unlimited" may be useless to you no matter what it costs.
+
+The cheapest unlimited plan is the most expensive one if you tether heavily.
+
+I built a calculator that takes your destination, duration and whether you are using a laptop hotspot, and tells you which provider actually wins:
+https://youssef-benatti.me/esim-arbitrage-calculator/guides/unlimited-vs-fixed-gb-break-even/
+
+(Disclosure: affiliate links, no extra cost to you.)

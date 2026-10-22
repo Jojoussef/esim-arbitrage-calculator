@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /social/
+
+Sitemap: https://youssef-benatti.me/esim-arbitrage-calculator/sitemap.xml

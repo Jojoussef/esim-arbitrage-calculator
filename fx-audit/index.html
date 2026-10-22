@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>20-Currency eSIM FX Audit — Find the Cheapest Checkout Currency | 2026</title>
+  <meta name="description" content="The eSIM catalogue is priced off a Euro base. We compared every currency&#39;s median rate against the Oct 2026 ECB/IBAN spot rate to find where checkout currency arbitrage is real.">
+  <link rel="canonical" href="https://youssef-benatti.me/esim-arbitrage-calculator/fx-audit/">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="author" content="Youssef Benatti">
+  <meta name="theme-color" content="#0F2942">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="eSIM Price Truth">
+  <meta property="og:title" content="20-Currency eSIM FX Audit — Find the Cheapest Checkout Currency | 2026">
+  <meta property="og:description" content="The eSIM catalogue is priced off a Euro base. We compared every currency&#39;s median rate against the Oct 2026 ECB/IBAN spot rate to find where checkout currency arbitrage is real.">
+  <meta property="og:url" content="https://youssef-benatti.me/esim-arbitrage-calculator/fx-audit/">
+  <meta property="og:image" content="https://youssef-benatti.me/esim-arbitrage-calculator/assets/og-default.svg">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="20-Currency eSIM FX Audit — Find the Cheapest Checkout Currency | 2026">
+  <meta name="twitter:description" content="The eSIM catalogue is priced off a Euro base. We compared every currency&#39;s median rate against the Oct 2026 ECB/IBAN spot rate to find where checkout currency arbitrage is real.">
+  <meta name="twitter:image" content="https://youssef-benatti.me/esim-arbitrage-calculator/assets/og-default.svg">
+  
+
+  <link rel="icon" href="https://youssef-benatti.me/esim-arbitrage-calculator/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://cdn.tailwindcss.com/3.4.17">
+  <link rel="stylesheet" href="https://youssef-benatti.me/esim-arbitrage-calculator/theme.css">
+  <link rel="stylesheet" href="https://youssef-benatti.me/esim-arbitrage-calculator/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>(function(){
+  try {
+    var stored = localStorage.getItem("esim_theme");
+    var mode = stored || "auto";
+    var dark = mode === "dark" || (mode === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  } catch (e) {}
+})();</script>
+
+
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header class="app-header sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <a href="https://youssef-benatti.me/esim-arbitrage-calculator/" class="flex items-center gap-3">
+        <span class="brand-mark w-9 h-9 rounded-lg border flex items-center justify-center font-extrabold text-lg">eS</span>
+        <span>
+          <span class="font-bold text-base sm:text-lg tracking-tight text-white">eSIM Price Truth</span>
+          <span class="brand-sub block text-xs hidden sm:block">Find the cheapest eSIM for your trip, in the currency that costs you least.</span>
+        </span>
+      </a>
+      <nav aria-label="Main" class="nav-shell flex items-center gap-1 p-1 rounded-xl border overflow-x-auto max-w-full text-xs sm:text-sm font-semibold">
+        <button id="themeToggle" type="button" class="theme-toggle mr-1" title="Theme" aria-label="Change theme">&#9681;</button>
+        <a href="https://youssef-benatti.me/esim-arbitrage-calculator/" class="nav-link px-3 py-1.5 rounded-lg transition whitespace-nowrap ">Calculator</a>
+        <a href="https://youssef-benatti.me/esim-arbitrage-calculator/destinations/" class="nav-link px-3 py-1.5 rounded-lg transition whitespace-nowrap ">Destinations</a>
+        <a href="https://youssef-benatti.me/esim-arbitrage-calculator/guides/" class="nav-link px-3 py-1.5 rounded-lg transition whitespace-nowrap ">Guides</a>
+        <a href="https://youssef-benatti.me/esim-arbitrage-calculator/fx-audit/" class="nav-link px-3 py-1.5 rounded-lg transition whitespace-nowrap is-active">FX Audit</a>
+        <a href="https://youssef-benatti.me/esim-arbitrage-calculator/pricing/" class="nav-link px-3 py-1.5 rounded-lg transition whitespace-nowrap ">Pricing</a>
+      </nav>
+    </div>
+  </header>
+  <div class="affiliate-disclosure no-print" role="note">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2">
+      <strong>Affiliate disclosure:</strong> this page contains affiliate links. If you buy an eSIM through them we may earn a commission at no extra cost to you. Prices shown are audited from the vendor catalogue on 2026-10-15 and change often &mdash; always confirm the final price at checkout.
+    </div>
+  </div>
+<main id="main" class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+
+  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7 mb-6">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">20-currency FX audit</h1>
+    <p class="text-sm text-slate-600 mt-2 max-w-3xl">The vendor prices its whole catalogue off a single Euro base, then re-rounds into each local currency. We compared the median catalogue rate for every currency against the 2026-10-15 ECB/IBAN reference rate. The gap is your margin.</p>
+    <div class="rounded-xl bg-teal-50/90 border border-teal-200 p-4 text-sm text-teal-950 mt-5">
+      <strong>The headline:</strong> <strong>HKD</strong> is priced 18.0% <strong>below</strong> spot, while <strong>ILS</strong> is priced 16.6% <strong>above</strong> it. Switch the checkout currency to HKD and you keep the difference &mdash; on every single plan, in every destination.
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+      <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Currencies audited</div>
+    <div class="text-lg font-extrabold text-slate-900">20</div>
+  </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cheapest currency</div>
+    <div class="text-lg font-extrabold text-teal-700">HKD</div>
+  </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Most expensive</div>
+    <div class="text-lg font-extrabold text-rose-600">ILS</div>
+  </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Median spread</div>
+    <div class="text-lg font-extrabold text-slate-900">1.0%</div>
+  </div>
+    </div>
+  </section>
+
+  <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+    <h2 class="text-lg font-bold text-slate-900 mb-1">Catalogue median vs. market spot</h2>
+    <p class="text-xs text-slate-500 mb-4">Spot rates from <a href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer" class="text-teal-600 underline">ECB reference rates</a> and <a href="https://www.iban.com/exchange-rates" target="_blank" rel="noopener noreferrer" class="text-teal-600 underline">IBAN</a>, as of 2026-10-15.</p>
+    <div class="table-scroll border border-slate-200 rounded-xl">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead class="bg-slate-100 text-slate-600 font-bold">
+          <tr><th class="py-2.5 px-3">Currency</th><th class="py-2.5 px-3 text-right">Catalog median /EUR</th><th class="py-2.5 px-3 text-right">Catalog median /USD</th><th class="py-2.5 px-3 text-right">Spot /EUR</th><th class="py-2.5 px-3 text-right">Spread vs EUR</th><th class="py-2.5 px-3 text-right">Spread vs USD</th><th class="py-2.5 px-3">Recommendation</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100"><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">HKD</td>
+        <td class="py-2 px-3 text-right font-mono">7.2134</td>
+        <td class="py-2 px-3 text-right font-mono">6.6550</td>
+        <td class="py-2 px-3 text-right font-mono">8.7953</td>
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-18.0%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-15.2%</td>
+        <td class="py-2 px-3 text-xs">Strong arbitrage currency — use at checkout</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">TRY</td>
+        <td class="py-2 px-3 text-right font-mono">50.0213</td>
+        <td class="py-2 px-3 text-right font-mono">46.1494</td>
+        <td class="py-2 px-3 text-right font-mono">55.3873</td>
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-9.7%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-6.6%</td>
+        <td class="py-2 px-3 text-xs">Strong arbitrage currency — use at checkout</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">CAD</td>
+        <td class="py-2 px-3 text-right font-mono">1.4941</td>
+        <td class="py-2 px-3 text-right font-mono">1.3784</td>
+        <td class="py-2 px-3 text-right font-mono">1.5923</td>
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-6.2%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-3.0%</td>
+        <td class="py-2 px-3 text-xs">Strong arbitrage currency — use at checkout</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">COP</td>
+        <td class="py-2 px-3 text-right font-mono">4499.7800</td>
+        <td class="py-2 px-3 text-right font-mono">4151.4715</td>
+        <td class="py-2 px-3 text-right font-mono">4707.3600</td>
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-4.4%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-slate-700">-1.2%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">USD</td>
+        <td class="py-2 px-3 text-right font-mono">1.0839</td>
+        <td class="py-2 px-3 text-right font-mono">1.0000</td>
+        <td class="py-2 px-3 text-right font-mono">1.1208</td>
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-3.3%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-slate-700">+0.0%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">AED</td>
+        <td class="py-2 px-3 text-right font-mono">4.0120</td>
+        <td class="py-2 px-3 text-right font-mono">3.7014</td>
+        <td class="py-2 px-3 text-right font-mono">4.1161</td>
+        <td class="py-2 px-3 text-right font-mono text-emerald-700 font-bold">-2.5%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-slate-700">+0.8%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">JPY</td>
+        <td class="py-2 px-3 text-right font-mono">175.4226</td>
+        <td class="py-2 px-3 text-right font-mono">161.8439</td>
+        <td class="py-2 px-3 text-right font-mono">177.0600</td>
+        <td class="py-2 px-3 text-right font-mono text-slate-700">-0.9%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-slate-700">+2.4%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">PLN</td>
+        <td class="py-2 px-3 text-right font-mono">4.3559</td>
+        <td class="py-2 px-3 text-right font-mono">4.0187</td>
+        <td class="py-2 px-3 text-right font-mono">4.3700</td>
+        <td class="py-2 px-3 text-right font-mono text-slate-700">-0.3%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+3.1%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">EUR</td>
+        <td class="py-2 px-3 text-right font-mono">1.0000</td>
+        <td class="py-2 px-3 text-right font-mono">0.9226</td>
+        <td class="py-2 px-3 text-right font-mono">1.0000</td>
+        <td class="py-2 px-3 text-right font-mono text-slate-700">+0.0%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+3.4%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">SGD</td>
+        <td class="py-2 px-3 text-right font-mono">1.4521</td>
+        <td class="py-2 px-3 text-right font-mono">1.3397</td>
+        <td class="py-2 px-3 text-right font-mono">1.4379</td>
+        <td class="py-2 px-3 text-right font-mono text-slate-700">+1.0%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+4.4%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">CHF</td>
+        <td class="py-2 px-3 text-right font-mono">0.9399</td>
+        <td class="py-2 px-3 text-right font-mono">0.8671</td>
+        <td class="py-2 px-3 text-right font-mono">0.9305</td>
+        <td class="py-2 px-3 text-right font-mono text-slate-700">+1.0%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+4.4%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">GBP</td>
+        <td class="py-2 px-3 text-right font-mono">0.8662</td>
+        <td class="py-2 px-3 text-right font-mono">0.7992</td>
+        <td class="py-2 px-3 text-right font-mono">0.8461</td>
+        <td class="py-2 px-3 text-right font-mono text-slate-700">+2.4%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+5.9%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">AUD</td>
+        <td class="py-2 px-3 text-right font-mono">1.6952</td>
+        <td class="py-2 px-3 text-right font-mono">1.5640</td>
+        <td class="py-2 px-3 text-right font-mono">1.6218</td>
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+4.5%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+8.1%</td>
+        <td class="py-2 px-3 text-xs">Near market parity</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">KRW</td>
+        <td class="py-2 px-3 text-right font-mono">1593.9800</td>
+        <td class="py-2 px-3 text-right font-mono">1470.5969</td>
+        <td class="py-2 px-3 text-right font-mono">1508.4800</td>
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+5.7%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+9.3%</td>
+        <td class="py-2 px-3 text-xs">Overpriced local table — avoid</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">EGP</td>
+        <td class="py-2 px-3 text-right font-mono">59.7282</td>
+        <td class="py-2 px-3 text-right font-mono">55.1049</td>
+        <td class="py-2 px-3 text-right font-mono">55.4800</td>
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+7.7%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+11.3%</td>
+        <td class="py-2 px-3 text-xs">Overpriced local table — avoid</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">MXN</td>
+        <td class="py-2 px-3 text-right font-mono">22.4563</td>
+        <td class="py-2 px-3 text-right font-mono">20.7181</td>
+        <td class="py-2 px-3 text-right font-mono">20.7596</td>
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+8.2%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+11.9%</td>
+        <td class="py-2 px-3 text-xs">Overpriced local table — avoid</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">NOK</td>
+        <td class="py-2 px-3 text-right font-mono">11.7013</td>
+        <td class="py-2 px-3 text-right font-mono">10.7956</td>
+        <td class="py-2 px-3 text-right font-mono">10.6520</td>
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+9.9%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+13.6%</td>
+        <td class="py-2 px-3 text-xs">Overpriced local table — avoid</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">BRL</td>
+        <td class="py-2 px-3 text-right font-mono">6.2901</td>
+        <td class="py-2 px-3 text-right font-mono">5.8032</td>
+        <td class="py-2 px-3 text-right font-mono">5.6679</td>
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+11.0%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+14.8%</td>
+        <td class="py-2 px-3 text-xs">Overpriced local table — avoid</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">CNY</td>
+        <td class="py-2 px-3 text-right font-mono">8.3945</td>
+        <td class="py-2 px-3 text-right font-mono">7.7447</td>
+        <td class="py-2 px-3 text-right font-mono">7.4993</td>
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+11.9%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+15.7%</td>
+        <td class="py-2 px-3 text-xs">Overpriced local table — avoid</td>
+      </tr><tr class="hover:bg-slate-50">
+        <td class="py-2 px-3 font-mono font-bold text-slate-900">ILS</td>
+        <td class="py-2 px-3 text-right font-mono">4.0549</td>
+        <td class="py-2 px-3 text-right font-mono">3.7410</td>
+        <td class="py-2 px-3 text-right font-mono">3.4769</td>
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+16.6%</td>
+
+        <td class="py-2 px-3 text-right font-mono text-rose-600 font-bold">+20.6%</td>
+        <td class="py-2 px-3 text-xs">Overpriced local table — avoid</td>
+      </tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+  <footer class="card rounded-none border-x-0 border-b-0 mt-10 py-8 px-4 sm:px-6 text-xs text-muted">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div>
+        <div class="font-bold text-strong text-sm mb-2">eSIM Price Truth</div>
+        <p>94 destinations &middot; 20 currencies &middot; 6,802 plan variants &middot; 136,040 prices checked.</p>
+        <p class="mt-2">Cross-checked against the <a href="https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html" target="_blank" rel="noopener noreferrer" class="text-accent underline">ECB reference rates</a> and <a href="https://www.iban.com/exchange-rates" target="_blank" rel="noopener noreferrer" class="text-accent underline">IBAN FX</a>.</p>
+      </div>
+      <div>
+        <div class="font-bold text-strong text-sm mb-2">Explore</div>
+        <ul class="space-y-1">
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/" class="hover:text-accent">Interactive calculator</a></li>
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/destinations/" class="hover:text-accent">All 94 destinations</a></li>
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/inversions/" class="hover:text-accent">224 plans priced backwards</a></li>
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/fx-audit/" class="hover:text-accent">Which currency to pay in</a></li>
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/guides/" class="hover:text-accent">Traveler guides</a></li>
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/pricing/" class="hover:text-accent">Pro subscription</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-bold text-strong text-sm mb-2">How &amp; legal</div>
+        <ul class="space-y-1">
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/methodology/" class="hover:text-accent">How we check prices</a></li>
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/privacy/" class="hover:text-accent">Privacy</a></li>
+          <li><a href="https://youssef-benatti.me/esim-arbitrage-calculator/disclosure/" class="hover:text-accent">Affiliate disclosure</a></li>
+          <li><a href="https://github.com/Jojoussef/esim-arbitrage-calculator" target="_blank" rel="noopener noreferrer" class="hover:text-accent">Source on GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto mt-6 pt-4 border-t border-slate-100 text-[11px] text-muted">
+      &copy; 2026 Youssef Benatti. Prices and availability are the vendor's and can change without notice. This tool is independent and is not affiliated with or endorsed by Holafly, Nomad, Saily, Airalo, Yesim, Jetpac or Cellesim.
+    </div>
+  </footer>
+<script>(function(){
+  var KEY = "esim_theme";
+  var order = ["light", "auto", "dark"];
+  var icons = { light: "\u2600", auto: "\u25D1", dark: "\u263D" };
+  var labels = { light: "Light", auto: "Auto", dark: "Dark" };
+  var current = "auto";
+  try { current = localStorage.getItem(KEY) || "auto"; } catch (e) {}
+  var btn = document.getElementById("themeToggle");
+  if (!btn) return;
+
+  function resolve(mode) {
+    return mode === "dark" || (mode === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function apply(mode) {
+    var dark = resolve(mode);
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
+    btn.textContent = icons[mode] || icons.auto;
+    btn.setAttribute("title", "Theme: " + (labels[mode] || "Auto") + " (click to change)");
+    btn.setAttribute("aria-label", "Theme: " + (labels[mode] || "Auto") + ". Click to change.");
+  }
+  apply(current);
+
+  btn.addEventListener("click", function () {
+    var idx = order.indexOf(current);
+    current = order[(idx + 1) % order.length];
+    try { localStorage.setItem(KEY, current); } catch (e) {}
+    apply(current);
+  });
+
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    var onChange = function () { if (current === "auto") apply("auto"); };
+    if (mq.addEventListener) mq.addEventListener("change", onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
+})();</script>
+
+
+</body>
+</html>

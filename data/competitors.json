@@ -1,0 +1,199 @@
+{
+  "as_of": "2026-10",
+  "benchmarks": {
+    "USA": [
+      {
+        "provider": "Nomad",
+        "key": "nomad",
+        "plan": "10 GB / 30d Fixed (AT&T/Verizon 5G)",
+        "price": 15,
+        "unlim7": 23,
+        "fup": "Fixed 10GB (or 50GB for $30) + Uncapped Hotspot",
+        "url": "https://www.nomadesim.com/united-states-eSIM"
+      },
+      {
+        "provider": "Saily",
+        "key": "saily",
+        "plan": "7d Unlimited (5GB/d Full Speed + 1Mbps)",
+        "price": 24.99,
+        "unlim7": 24.99,
+        "fup": "5 GB/day full speed + Uncapped Hotspot + AdBlocker",
+        "url": "https://saily.com/esim-united-states/"
+      },
+      {
+        "provider": "Airalo",
+        "key": "airalo",
+        "plan": "7d Unlimited (5GB/d) or 10GB ($22.50)",
+        "price": 25,
+        "unlim7": 25,
+        "fup": "5 GB/day full speed + Uncapped Hotspot",
+        "url": "https://www.airalo.com/united-states-esim"
+      }
+    ],
+    "ESP": [
+      {
+        "provider": "Nomad",
+        "key": "nomad",
+        "plan": "10 GB / 30d ($14) or 50 GB ($35)",
+        "price": 14,
+        "unlim7": 25,
+        "fup": "Fixed 10GB–50GB on 5G + Uncapped Hotspot",
+        "url": "https://esimdb.com/spain/nomad"
+      },
+      {
+        "provider": "Saily",
+        "key": "saily",
+        "plan": "10 GB / 30d ($15.99) or 7d Unlim ($22.99)",
+        "price": 15.99,
+        "unlim7": 22.99,
+        "fup": "5 GB/day on Unlim + Uncapped Hotspot",
+        "url": "https://saily.com/esim-spain/"
+      },
+      {
+        "provider": "Jetpac",
+        "key": "jetpac",
+        "plan": "Europe 40 GB / 30d Fixed (€33.50 / ~$36.50)",
+        "price": 36.5,
+        "unlim7": 28,
+        "fup": "€0.84/GB across 32 European countries + Free Maps/WhatsApp",
+        "url": "https://andreondigital.com/jetpac-esim-review/"
+      }
+    ],
+    "JPN": [
+      {
+        "provider": "Nomad",
+        "key": "nomad",
+        "plan": "10 GB / 30d ($16) or 50 GB ($35)",
+        "price": 16,
+        "unlim7": 25,
+        "fup": "KDDI/SoftBank + Uncapped Hotspot",
+        "url": "https://esimdb.com/japan/nomad"
+      },
+      {
+        "provider": "Saily",
+        "key": "saily",
+        "plan": "10 GB / 30d ($17.99) or 7d Unlim ($26.99)",
+        "price": 17.99,
+        "unlim7": 26.99,
+        "fup": "5 GB/day full speed on Unlim + Uncapped Hotspot",
+        "url": "https://saily.com/esim-japan/"
+      },
+      {
+        "provider": "Airalo",
+        "key": "airalo",
+        "plan": "Moshi Moshi 10 GB ($18) or 7d Unlim ($26.50)",
+        "price": 18,
+        "unlim7": 26.5,
+        "fup": "SoftBank/KDDI 5G + In-App Top-Up",
+        "url": "https://www.airalo.com/japan-esim"
+      }
+    ],
+    "MEX": [
+      {
+        "provider": "Nomad",
+        "key": "nomad",
+        "plan": "10 GB / 30d ($15.50) or 7d Unlim ($22.00)",
+        "price": 15.5,
+        "unlim7": 22,
+        "fup": "AT&T/Movistar 4G/5G + Uncapped Hotspot",
+        "url": "https://www.nomadesim.com/mexico-eSIM"
+      },
+      {
+        "provider": "Airalo",
+        "key": "airalo",
+        "plan": "10 GB / 30d ($18.50) or 7d Unlim ($23.50)",
+        "price": 18.5,
+        "unlim7": 23.5,
+        "fup": "3 GB/day on Unlim + Uncapped Hotspot",
+        "url": "https://esimspotter.com/en/blog/saily-esim-review"
+      },
+      {
+        "provider": "Saily",
+        "key": "saily",
+        "plan": "10 GB / 30d ($23.99) or 7d Unlim ($24.99)",
+        "price": 23.99,
+        "unlim7": 24.99,
+        "fup": "3 GB/day on Unlim + Built-in AdBlocker",
+        "url": "https://saily.com/esim-mexico/"
+      }
+    ],
+    "TUN": [
+      {
+        "provider": "Nomad",
+        "key": "nomad",
+        "plan": "10 GB / 30d ($19) or 5d Unlim ($18)",
+        "price": 19,
+        "unlim7": 25,
+        "fup": "Covers Ooredoo + Orange + Tunisie Telecom (5G/4G)",
+        "url": "https://www.nomadesim.com/tunisia-eSIM"
+      },
+      {
+        "provider": "Saily",
+        "key": "saily",
+        "plan": "10 GB / 30d ($19.99) or 20 GB ($31.99)",
+        "price": 19.99,
+        "unlim7": 34.99,
+        "fup": "Uncapped Hotspot + Single-Profile Setup",
+        "url": "https://saily.com/esim-tunisia/"
+      },
+      {
+        "provider": "Airalo",
+        "key": "airalo",
+        "plan": "Elissa 7d Unlim ($35.00) or 1GB ($4.00)",
+        "price": 35,
+        "unlim7": 35,
+        "fup": "Ooredoo network + Uncapped Hotspot",
+        "url": "https://www.airalo.com/tunisia-esim"
+      }
+    ],
+    "FJI": [
+      {
+        "provider": "Saily",
+        "key": "saily",
+        "plan": "3 GB / 30d ($19.99) or 5 GB / 30d ($29.99)",
+        "price": 19.99,
+        "unlim7": 29.99,
+        "fup": "44% cheaper than Holafly 7d ($53.90) + Uncapped Hotspot",
+        "url": "https://saily.com/esim-fiji/"
+      },
+      {
+        "provider": "Airalo",
+        "key": "airalo",
+        "plan": "5d Unlim ($41.50) or 7d Unlim ($53.00)",
+        "price": 41.5,
+        "unlim7": 53,
+        "fup": "Digicel Fiji + Fixed tiers from $7.50 (1GB)",
+        "url": "https://www.airalo.com/fiji-esim"
+      }
+    ],
+    "WRD": [
+      {
+        "provider": "Nomad",
+        "key": "nomad",
+        "plan": "Global-EX 10GB / 180d ($39) or 20GB / 365d ($59)",
+        "price": 39,
+        "unlim7": 39,
+        "fup": "98–123 countries · 6 to 12 month validity",
+        "url": "https://www.nomadesim.com/global-eSIM"
+      },
+      {
+        "provider": "Saily",
+        "key": "saily",
+        "plan": "Global 10GB / 180d ($56.99) or Ultra ($39.99/mo)",
+        "price": 39.99,
+        "unlim7": 56.99,
+        "fup": "121 countries + Nord Security suite",
+        "url": "https://saily.com/esim-global/"
+      },
+      {
+        "provider": "Jetpac",
+        "key": "jetpac",
+        "plan": "Global 30GB / 30d Fixed ($69.99 — beats 20GB at $100)",
+        "price": 69.99,
+        "unlim7": 40.5,
+        "fup": "97 countries + Free LoungeKey on flight delay",
+        "url": "https://andreondigital.com/jetpac-esim-review/"
+      }
+    ]
+  }
+}

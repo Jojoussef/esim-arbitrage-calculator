@@ -1,0 +1,30 @@
+I audited the eSIM catalogue across 20 currencies and 94 destinations, then compared every currency's median catalogue rate against the ECB reference rate for 15 Oct 2026.
+
+The catalogue is priced off a single EUR base, then re-rounded into each local currency. The rounding is not done at the live market rate, so the result is 20 slightly wrong rates. Some favour you, some punish you.
+
+The results:
+
+• HKD is priced 18.0% BELOW spot — the best one to pay in
+• TRY is 9.7% below spot
+• CAD is 6.2% below spot
+• COP is 4.4% below spot
+• USD is 3.3% below spot
+• AED is 2.5% below spot
+• GBP is 2.4% ABOVE spot — avoid paying in this
+• AUD is 4.5% ABOVE spot — avoid paying in this
+• KRW is 5.7% ABOVE spot — avoid paying in this
+• EGP is 7.7% ABOVE spot — avoid paying in this
+• MXN is 8.2% ABOVE spot — avoid paying in this
+• NOK is 9.9% ABOVE spot — avoid paying in this
+• BRL is 11.0% ABOVE spot — avoid paying in this
+• CNY is 11.9% ABOVE spot — avoid paying in this
+• ILS is 16.6% ABOVE spot — avoid paying in this
+
+On a $30 plan that is roughly $5.40 of pure margin. It takes about ten seconds: find the currency selector in the checkout, switch it, and check that the total dropped.
+
+No code, no voucher, no referral trick — just a dropdown nobody touches.
+
+I built a calculator that does this for the exact plan and duration you are buying, and ranks all 20 currencies for it:
+https://youssef-benatti.me/esim-arbitrage-calculator/
+
+(Disclosure: affiliate links, and it may cost you nothing extra.)

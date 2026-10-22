@@ -1,0 +1,27 @@
+I scanned every destination, currency and duration in an eSIM catalogue. In 224 cases, the LONGER plan is listed at a LOWER total price than the shorter one.
+
+Not a rounding error in my table — an actual price inversion in the vendor's own price list.
+
+The biggest one right now: Dominican Republic (DOM).
+The 26-day plan is COL$336,999.00. The 25-day plan is COL$426,999.00. You get 1 more day(s) of coverage and pay COL$90,000.00 LESS (21.1% off).
+
+A few more:
+
+• Dominican Republic (DOM): 25d = COL$426,999.00 → 26d = COL$336,999.00 — save COL$90,000.00 (21.1%)
+• Dominican Republic (DOM): 25d = ₩150,900.00 → 26d = ₩119,900.00 — save ₩31,000.00 (20.5%)
+• Aruba (ABW): 7d = COL$255,999.00 → 8d = COL$246,999.00 — save COL$9,000.00 (3.5%)
+• Dominican Republic (DOM): 25d = ¥16,690.00 → 26d = ¥13,190.00 — save ¥3,500.00 (21%)
+• Aruba (ABW): 7d = ₩90,900.00 → 8d = ₩87,900.00 — save ₩3,000.00 (3.3%)
+• Dominican Republic (DOM): 25d = E£5,664.05 → 26d = E£4,470.36 — save E£1,193.69 (21.1%)
+• Dominican Republic (DOM): 25d = ₺4,747.00 → 26d = ₺3,747.00 — save ₺1,000.00 (21.1%)
+
+Why it happens: the vendor anchors on a base rate, applies a duration multiplier, then rounds into each local currency. When the rounding lands badly, the shorter plan rounds UP past the longer one.
+
+Two things worth knowing:
+1. This is a pricing artefact, not a promotion. It disappears the moment they re-price the catalogue, so check before you pay rather than planning around it.
+2. Their iOS app does not list every duration the web checkout sells. 66.3% of plan variants are web-only, and the inversions cluster in exactly those rows. If you only buy eSIMs from the app, you literally cannot see them.
+
+Full table of all 224 + a calculator that loads any of them with one click:
+https://youssef-benatti.me/esim-arbitrage-calculator/inversions/
+
+(Disclosure: affiliate links, no extra cost to you.)
