@@ -1,13 +1,13 @@
 # Build output
 dist/
 
-# The Worker's embedded catalogue. It is regenerated from data/catalog.json by
-# scripts/build-worker.mjs, so it is never committed - it would be an 800 KB
-# duplicate of a file that is already in the repo.
-worker/catalog-data.js
+# The Appwrite Function's embedded catalogue. It is regenerated from
+# data/catalog.json by scripts/build-appwrite-function.mjs, so it is never
+# committed - it would be an 800 KB duplicate of a file that is already in
+# the repo.
+appwrite/functions/premium-api/src/catalog.js
 
 # Wrangler's local state and build cache. It can contain account details.
-worker/.wrangler/
 .wrangler/
 
 # Node

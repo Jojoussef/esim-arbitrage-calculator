@@ -123,5 +123,55 @@ const notRevoked = await checkEntitlement(token, {
 });
 check("a non-revoked subscriber is allowed", notRevoked.ok);
 
+// ---- the two copies of the scheme must not drift ----
+// The canonical copy is scripts/lib/entitlement.mjs; the function has its
+// own copy because it is deployed as a separate bundle. If they ever
+// disagree, a signed token would verify in one place and not the other.
+{
+  const canonical = await import("./lib/entitlement.mjs");
+  const functionCopy = await import(
+    "../appwrite/functions/premium-api/src/entitlement.js"
+  );
+
+  const token = canonical.signEntitlement(
+    "pro",
+    Date.now() + 86_400_000,
+    SECRET,
+    "sub_drift"
+  );
+
+  check(
+    "the function accepts a token signed by the canonical module",
+    functionCopy.verifyEntitlement(token, SECRET).ok
+  );
+
+  const canonicalToken = functionCopy.signEntitlement(
+    "team",
+    Date.now() + 86_400_000,
+    SECRET,
+    "sub_drift"
+  );
+  check(
+    "the canonical module accepts a token signed by the function",
+    canonical.verifyEntitlement(canonicalToken, SECRET).ok
+  );
+
+  check(
+    "both copies have the same feature matrix",
+    JSON.stringify(canonical.FEATURES) === JSON.stringify(functionCopy.FEATURES),
+    `${JSON.stringify(canonical.FEATURES)} vs ${JSON.stringify(functionCopy.FEATURES)}`
+  );
+
+  for (const plan of ["free", "pro", "team"]) {
+    for (const feature of Object.keys(canonical.FEATURES)) {
+      check(
+        `both copies agree: ${plan} / ${feature}`,
+        canonical.planHasFeature(plan, feature) ===
+          functionCopy.planHasFeature(plan, feature)
+      );
+    }
+  }
+}
+
 console.log(`\n${passed} passed, ${failed} failed\n`);
 process.exit(failed > 0 ? 1 : 0);

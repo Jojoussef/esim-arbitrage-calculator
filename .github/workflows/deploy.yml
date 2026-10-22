@@ -42,6 +42,14 @@ jobs:
       - name: Test the entitlement scheme
         run: node scripts/test-entitlement.mjs
 
+      # The Appwrite Function is the paid tier's backend. Its routing, its
+      # entitlement logic and its data shapes are tested against a stubbed
+      # database, so a mistake fails here rather than in production.
+      - name: Test the Appwrite function
+        run: |
+          npm --prefix appwrite/functions/premium-api install --no-audit --no-fund
+          node scripts/test-appwrite-function.mjs
+
       - name: Check monetisation & SEO invariants
         run: node scripts/check.mjs
 

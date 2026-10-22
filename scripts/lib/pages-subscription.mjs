@@ -31,10 +31,8 @@ export function buildPricingPage({ site, stats, subscription }) {
         ? `$${plan.price_monthly}<span class="text-xs font-normal text-muted">/mo</span>`
         : "Free";
 
-      // Each plan links to its own checkout URL. Until the payment
-      // provider is set up, they fall back to the shared one.
-      const checkout = subscription.checkout_urls?.[key] ?? subscription.checkout_url ?? "#";
-
+      // The paid plans start a Stripe Checkout session through the
+      // function, so the button carries the plan it is for.
       return `<div class="card p-5 sm:p-6 flex flex-col ${isPro ? "border-2 border-accent" : ""}">
         <div class="flex items-center justify-between gap-2">
           <h2 class="text-base font-bold text-strong">${esc(plan.label)}</h2>
@@ -50,7 +48,7 @@ export function buildPricingPage({ site, stats, subscription }) {
         ${
           key === "free"
             ? `<a href="${esc(url(site, "/"))}" class="btn-ghost mt-5 block text-center text-sm font-semibold px-5 py-2.5 transition">Start free</a>`
-            : `<a href="${esc(checkout)}" target="_blank" rel="noopener noreferrer" class="${isPro ? "btn-accent" : "btn-primary"} mt-5 block text-center text-sm font-semibold px-5 py-2.5 transition">Subscribe</a>`
+            : `<button type="button" data-checkout-plan="${esc(key)}" class="${isPro ? "btn-accent" : "btn-primary"} mt-5 block w-full text-center text-sm font-semibold px-5 py-2.5 transition">Subscribe</button>`
         }
       </div>`;
     })
@@ -66,6 +64,11 @@ export function buildPricingPage({ site, stats, subscription }) {
   <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
     ${cards}
   </div>
+
+  <section class="card p-5 sm:p-6 mt-6" id="esimAccount">
+    <h2 class="text-base font-bold text-strong">Your account</h2>
+    <div class="mt-2"><!-- the subscription client fills this in --></div>
+  </section>
 
   <section class="card p-5 sm:p-6 mt-6">
     <h2 class="text-base font-bold text-strong">What Pro actually adds</h2>
@@ -111,9 +114,11 @@ export function buildPricingPage({ site, stats, subscription }) {
   // The subscription client is only loaded on the pages that need it, so
   // the free pages stay completely free of subscription code.
   const scripts = subscription.enabled
-    ? `<script>window.ESIM_SUBSCRIPTION_API=${JSON.stringify(
-        subscription.api_base_url ?? ""
-      )};</script>
+    ? `<script>window.ESIM_SUBSCRIPTION=${JSON.stringify({
+        endpoint: subscription.appwrite?.endpoint ?? "",
+        project: subscription.appwrite?.project_id ?? "",
+        function_id: subscription.appwrite?.function_id ?? "premium-api",
+      })};</script>
 <script src="${url(site, "/assets/subscription.js")}" defer></script>`
     : "";
 

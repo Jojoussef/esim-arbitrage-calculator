@@ -49,7 +49,10 @@ pays you directly, and you keep the whole amount.
 
 **The free tier stays completely free.** That is the whole trick. The
 calculator is the SEO asset and the referral asset — paywalling it would
-destroy both. What is paid for is the *work*, not the *data*:
+destroy both. `scripts/check.mjs` fails the build if the free plan ever
+gets a price.
+
+**What is paid for is the *work*, not the *data*:**
 
 - being **told** when a price changes, before the public page is rebuilt
 - a **pre-built, flat, de-duplicated** export instead of a nested JSON file
@@ -67,37 +70,62 @@ destroy both. What is paid for is the *work*, not the *data*:
   that needs thousands of clicks.
 - The vendor outreach still works *on top* of it.
 
-**How it is built:**
+### The stack: Appwrite + Stripe
 
 | Piece | Where |
 |---|---|
-| Plan config | `config/subscription.json` |
-| Entitlement signing + verification | `scripts/lib/entitlement.mjs` |
-| Entitlement tests (24 assertions) | `scripts/test-entitlement.mjs` |
-| The API Worker | `worker/index.js` |
-| Worker build (embeds the catalogue) | `scripts/build-worker.mjs` |
-| Database schema | `worker/schema.sql` |
-| Client session handling | `src/assets/subscription.js` |
+| Subscriber accounts | Appwrite Auth (email + password) |
+| Subscriber + watchlist records | Appwrite TablesDB |
+| The premium API, the Stripe billing, the webhook | An Appwrite Function (`appwrite/functions/premium-api`) |
+| Payments | Stripe Checkout, subscriptions, customer portal |
 | The pricing page | `scripts/lib/pages-subscription.mjs` → `/pricing/` |
+| The client | `src/assets/subscription.js` |
 
-**The infrastructure costs nothing at this scale:**
+**Why the session is the key.** Appwrite derives the user's id from the
+session JWT, and passes it to the function as `x-appwrite-user-id`. The
+client never sends a user id it could have made up. The subscriber record
+is the source of truth for the plan, so a client cannot upgrade itself by
+editing a field, and a cancelled subscription loses access immediately.
 
-- Cloudflare Workers free tier: 100,000 requests/day
-- KV free tier: 100,000 reads/day, 1,000 writes/day
-- D1 free tier: 5,000,000 rows read/day, 100,000 rows written/day
+**The infrastructure is free at this scale.** Appwrite Cloud's free plan
+covers a project, a database, tables and function executions comfortably at
+subscriber counts in the dozens.
 
-At 100 subscribers, you are using well under 1% of the free tier.
+### The Stripe problem, and how to solve it
 
-**Payment is via a Merchant of Record** — Lemon Squeezy (5% + 50¢) or
-Gumroad (10% + 50¢). They handle VAT and sales tax worldwide, which matters
-when you are a solo seller, and they both support recurring subscriptions.
+**Stripe does not support businesses registered in Tunisia.** Neither
+standard Stripe Payments nor Stripe Managed Payments (the Merchant of
+Record product) will open an account for a Tunisia-based seller — the
+supported business locations are Canada, the US, 35 European countries, and
+Australia, Hong Kong, Japan and Singapore.
 
-**To switch it on you need exactly one thing: a checkout URL.** Put it in
-`config/subscription.json` as `checkout_url`, then:
+Three ways forward, in order of preference:
 
-```bash
-node scripts/build.mjs && node scripts/check.mjs && node scripts/validate.mjs
-```
+1. **Stripe Atlas.** Forms a Delaware C-corp from anywhere in the world
+   (~$500 once, then ~$100/year), and the account can be opened immediately.
+   This is the cleanest route to real Stripe, and it works with the code
+   as written. Because Stripe is then the merchant of record only if you
+   enable Managed Payments, you should either enable it (Stripe handles
+   VAT) or register for EU VAT with the OSS.
+2. **A Merchant of Record that accepts Tunisia-based sellers** — Lemon
+   Squeezy or Gumroad. They keep the code, but you do not get a Stripe
+   dashboard or the API.
+3. **A local Tunisian entity that can contract with a payment provider.**
+   Slower, and it is your own legal problem.
+
+The code is written against the **standard Stripe API** (Checkout
+Sessions, Subscriptions, the customer portal, webhooks), so option 1 makes
+it work as-is. `config/subscription.json` has the two price ids to fill in.
+
+### The Stripe events the function handles
+
+| Event | What it does |
+|---|---|
+| `checkout.session.completed` | Creates the subscriber record from the Appwrite user id in the session metadata. |
+| `customer.subscription.created` / `.updated` | Keeps the plan and the current period end up to date. |
+| `customer.subscription.deleted` | Marks the record cancelled, so access ends immediately. |
+| `invoice.paid` | Restores access after a failed payment is resolved. |
+| `invoice.payment_failed` | Marks the record `past_due`, so access pauses. |
 
 ### 1. Sponsorship — the secondary engine
 

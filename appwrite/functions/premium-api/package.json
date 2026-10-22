@@ -1,0 +1,15 @@
+{
+  "name": "premium-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The premium data API for eSIM Price Truth. Serves the paid tier's data, exports and pricing-error feed to authenticated Appwrite accounts.",
+  "type": "module",
+  "main": "src/main.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "node-appwrite": "^31.0.0",
+    "stripe": "^23.0.0"
+  }
+}

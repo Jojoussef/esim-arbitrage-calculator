@@ -311,13 +311,39 @@ if (monetization) {
     ok("the checkout URL is set");
   }
 
-  // The API URL has to be https and has to match the deployed Worker.
-  const api = subscription.api_base_url ?? "";
+  // The Appwrite project has to be configured, or the client cannot sign
+  // anyone in and the function cannot be called.
+  const appwrite = subscription.appwrite ?? {};
   if (subscription.enabled) {
-    if (!api.startsWith("https://")) {
-      fail(`config/subscription.json: api_base_url is not https (${api || "empty"})`);
+    if (!appwrite.project_id) {
+      fail("config/subscription.json: appwrite.project_id is empty");
     } else {
-      ok("the subscription API URL is https");
+      ok(`the Appwrite project is set (${appwrite.project_id})`);
+    }
+    if (!appwrite.endpoint?.startsWith("https://")) {
+      fail(
+        `config/subscription.json: appwrite.endpoint is not https (${
+          appwrite.endpoint || "empty"
+        })`
+      );
+    } else {
+      ok("the Appwrite endpoint is https");
+    }
+  }
+
+  // The provider has to be Stripe now, and the prices have to be set.
+  if (subscription.enabled) {
+    if (subscription.provider !== "stripe") {
+      fail(
+        `config/subscription.json: the provider is "${subscription.provider}", expected "stripe"`
+      );
+    } else {
+      ok("the payment provider is Stripe");
+    }
+    for (const plan of ["pro", "team"]) {
+      if (!subscription.stripe?.[`price_${plan}`]) {
+        warn(`the Stripe price for the ${plan} plan is not set yet`);
+      }
     }
   }
 

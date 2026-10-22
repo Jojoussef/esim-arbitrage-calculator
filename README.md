@@ -110,7 +110,42 @@ publicly at `/data/catalog.json` (the free calculator is client-side), so
 *labour*: being told when a price moves, a pre-flattened export ready for
 a spreadsheet, and the error monitor as a live feed.
 
-**How it is enforced.** Server-side, in a Cloudflare Worker:
+**How it is enforced.** Server-side, in an Appwrite Function:
+
+```
+browser ──X-Appwrite-Session (JWT)──▶  Appwrite Function
+                                          ├─ x-appwrite-user-id identifies the caller
+                                          ├─ the subscriber record says what they paid for
+                                          └─ the premium data is served, or refused
+```
+
+Appwrite derives the user's id from the session JWT, so the client never
+sends a user id it could have made up. The subscriber record is the source
+of truth for the plan, so a client cannot upgrade itself by editing a
+field, and a cancelled subscription loses access immediately.
+
+**⚠️ Stripe does not support Tunisia-based businesses.** Neither standard
+Stripe Payments nor Managed Payments will open an account for a
+Tunisia-registered seller. The code is written against the standard Stripe
+API, so the practical route is **Stripe Atlas** (~$500 once, then ~$100/yr,
+forms a Delaware C-corp from anywhere). See `docs/MONETIZATION.md` for
+the alternatives and the full reasoning.
+
+**The pieces:**
+
+| Piece | Where |
+|---|---|
+| The function | `appwrite/functions/premium-api/` |
+| The database access (hand-rolled REST) | `appwrite/functions/premium-api/src/db.js` |
+| Provisioning | `scripts/appwrite-setup.mjs` |
+| Deployment | `scripts/appwrite-deploy.mjs` |
+| Local tests (37 assertions) | `scripts/test-appwrite-function.mjs` |
+| The client | `src/assets/subscription.js` |
+| The pricing page | `scripts/lib/pages-subscription.mjs` → `/pricing/` |
+
+See `docs/MONETIZATION.md` for the full strategy.
+
+**REMOVE_LEGACY_BLOCK**
 
 ```
 browser  ──Authorization: Bearer <signed token>──▶  Worker

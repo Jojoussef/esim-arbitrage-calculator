@@ -1,10 +1,12 @@
 /**
  * Entitlement logic for the subscription model.
  *
- * This module is deliberately shared between the static site and the Worker:
- * the site uses it to decide what to SHOW, the Worker uses it to decide what
- * to SERVE. Both must agree, so both read the same config and the same
- * helper functions.
+ * This is the CANONICAL copy of the signature scheme. The Appwrite
+ * Function has a function-local copy (appwrite/functions/premium-api/src/
+ * entitlement.js) because the function is deployed as its own bundle with
+ * its own dependencies, and the two must not drift - so
+ * scripts/test-entitlement.mjs tests this file, and
+ * scripts/test-appwrite-function.mjs tests the function's copy.
  *
  * The rule: the calculator is ALWAYS free. Only the premium DATA is gated,
  * and it is gated server-side - the premium data is simply not sent to a
