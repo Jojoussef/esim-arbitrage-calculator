@@ -568,5 +568,359 @@ console.log("APPWRITE FUNCTION TESTS\n");
   delete process.env.APPWRITE_FUNCTION_API_ENDPOINT;
 }
 
+/* ------------------------------------------------------------- the billing -- */
+
+// The Stripe calls are stubbed, because the point of these tests is the
+// LOGIC around them: which price is chosen, what the webhook does with an
+// event, and - above all - that an unverified event is refused.
+const stripeCalls = [];
+const { createHmac } = await import("node:crypto");
+const TEST_TIMESTAMP = 1700000000;
+const TEST_WEBHOOK_SECRET = "whsec_test";
+
+function hmac(secret, payload) {
+  return createHmac("sha256", secret).update(payload).digest("hex");
+}
+
+/** The Stripe client the function will use, installed as a global. */
+globalThis.__APPWRITE_TEST_STRIPE = {
+  checkout: {
+    sessions: {
+      async create(params) {
+        stripeCalls.push(["checkout", params]);
+        return { id: "cs_test_1", url: "https://checkout.stripe.com/test" };
+      },
+    },
+  },
+  billingPortal: {
+    sessions: {
+      async create(params) {
+        stripeCalls.push(["portal", params]);
+        return { url: "https://billing.stripe.com/test" };
+      },
+    },
+  },
+  subscriptions: {
+    async retrieve(id) {
+      stripeCalls.push(["retrieve", id]);
+      return { id, items: { data: [{ current_period_end: 1795367101 }] } };
+    },
+  },
+  webhooks: {
+    /**
+     * The real signature check, with a test secret. An event is only
+     * accepted when the signature matches the body, exactly as Stripe
+     * does it.
+     */
+    constructEvent(raw, signature, secret) {
+      const expected = `t=${TEST_TIMESTAMP},v1=${hmac(secret, `${TEST_TIMESTAMP}.${raw}`)}`;
+      if (signature !== expected) {
+        throw new Error("No signatures found matching the expected signature");
+      }
+      return JSON.parse(raw);
+    },
+  },
+};
+
+/** A webhook request, signed the way Stripe signs one. */
+function makeWebhook(event, { secret = TEST_WEBHOOK_SECRET, sign = true } = {}) {
+  const raw = JSON.stringify(event);
+  const signature = sign
+    ? `t=${TEST_TIMESTAMP},v1=${hmac(secret, `${TEST_TIMESTAMP}.${raw}`)}`
+    : "t=1,v1=deadbeef";
+  const req = makeReq({
+    method: "POST",
+    path: "/webhook",
+    headers: { "stripe-signature": signature },
+  });
+  req.bodyText = raw;
+  return req;
+}
+
+// ---- the checkout route ----
+{
+  process.env.STRIPE_SECRET_KEY = "sk_test_stubbed";
+  process.env.STRIPE_PRICE_PRO = "price_pro_monthly";
+  process.env.STRIPE_PRICE_PRO_YEARLY = "price_pro_yearly";
+  process.env.STRIPE_PRICE_TEAM = "price_team_monthly";
+  process.env.STRIPE_PRICE_TEAM_YEARLY = "price_team_yearly";
+  process.env.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET;
+
+  // A customer who has never subscribed has NO record, so the checkout
+  // must work on identity alone. Demanding an active subscription here
+  // would mean nobody could ever become a subscriber.
+  const out = await call(
+    makeReq({ method: "POST", path: "/checkout", user: "user_new", body: { plan: "pro" } })
+  );
+  check("a new customer can start a checkout", out.status === 200, JSON.stringify(out.body));
+  check("the checkout returns a Stripe url", typeof out.body?.url === "string");
+
+  const session = stripeCalls.at(-1)?.[1];
+  check(
+    "the monthly Pro price is used by default",
+    session?.line_items?.[0]?.price === "price_pro_monthly",
+    JSON.stringify(session?.line_items)
+  );
+  check(
+    "the checkout is tied to the signed-in user",
+    session?.client_reference_id === "user_new",
+    session?.client_reference_id
+  );
+  check(
+    "the metadata carries the user id",
+    session?.metadata?.appwriteUserId === "user_new"
+  );
+  check(
+    "the return url points at the site, not at a caller-supplied one",
+    String(session?.success_url).startsWith("https://youssef-benatti.me/"),
+    session?.success_url
+  );
+
+  // The yearly price is advertised on the pricing page, so it has to be
+  // purchasable.
+  await call(
+    makeReq({
+      method: "POST",
+      path: "/checkout",
+      user: "user_new",
+      body: { plan: "pro", period: "yearly" },
+    })
+  );
+  check(
+    "the yearly price is used when the yearly period is asked for",
+    stripeCalls.at(-1)?.[1]?.line_items?.[0]?.price === "price_pro_yearly",
+    JSON.stringify(stripeCalls.at(-1)?.[1]?.line_items)
+  );
+
+  await call(
+    makeReq({
+      method: "POST",
+      path: "/checkout",
+      user: "user_new",
+      body: { plan: "team", period: "yearly" },
+    })
+  );
+  check(
+    "the yearly Team price is used for the Team plan",
+    stripeCalls.at(-1)?.[1]?.line_items?.[0]?.price === "price_team_yearly"
+  );
+
+  // A caller must not be able to name their own price.
+  await call(
+    makeReq({
+      method: "POST",
+      path: "/checkout",
+      user: "user_new",
+      body: { plan: "pro", price: "price_someone_elses" },
+    })
+  );
+  check(
+    "the price came from the server's own list",
+    stripeCalls.at(-1)?.[1]?.line_items?.[0]?.price === "price_pro_monthly"
+  );
+
+  const free = await call(
+    makeReq({ method: "POST", path: "/checkout", user: "user_new", body: { plan: "free" } })
+  );
+  check("the free plan cannot be bought", free.status === 400, JSON.stringify(free.body));
+  check("the free plan says unknown_plan", free.body?.error === "unknown_plan");
+
+  const anon = await call(
+    makeReq({ method: "POST", path: "/checkout", body: { plan: "pro" } })
+  );
+  check("an anonymous caller cannot start a checkout", anon.status === 401);
+}
+
+// ---- the webhook: an unverified event must be refused ----
+{
+  // A forged event would be a free subscription for whoever posts it, so
+  // a request with no signature has to be rejected outright.
+  const noHeader = makeReq({ method: "POST", path: "/webhook" });
+  noHeader.bodyText = JSON.stringify({
+    type: "checkout.session.completed",
+    data: { object: {} },
+  });
+  const unsigned = await call(noHeader);
+  check(
+    "a webhook with no signature is refused",
+    unsigned.status === 400,
+    JSON.stringify(unsigned.body)
+  );
+  check(
+    "a webhook with no signature says missing_signature",
+    unsigned.body?.error === "missing_signature",
+    unsigned.body?.error
+  );
+
+  // A signature that does not match the body is just as bad.
+  const badSignature = await call(
+    makeWebhook(
+      { type: "checkout.session.completed", data: { object: {} } },
+      { secret: "whsec_a_different_secret" }
+    )
+  );
+  check("a webhook signed with the wrong secret is refused", badSignature.status === 400);
+  check(
+    "a badly signed webhook says invalid_signature",
+    badSignature.body?.error === "invalid_signature",
+    badSignature.body?.error
+  );
+}
+
+// ---- the webhook: a real event activates the subscription ----
+{
+  rows.subscribers.length = 0;
+  rows.subscribers.push({
+    $id: "row_webhook",
+    userId: "user_hook",
+    plan: "pro",
+    status: "cancelled",
+    stripeCustomerId: null,
+    stripeSubscriptionId: null,
+    email: null,
+    currentPeriodEnd: null,
+  });
+
+  const out = await call(
+    makeWebhook({
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          customer: "cus_hook",
+          subscription: "sub_hook",
+          metadata: { appwriteUserId: "user_hook", plan: "team" },
+          customer_details: { email: "hook@example.com" },
+        },
+      },
+    })
+  );
+  check("a signed webhook is accepted", out.status === 200, JSON.stringify(out.body));
+  check("the webhook says it was received", out.body?.received === true);
+
+  const row = rows.subscribers.find((r) => r.userId === "user_hook");
+  check("the subscriber record was created", Boolean(row));
+  check("the record is active", row?.status === "active", row?.status);
+  check("the plan came from the metadata", row?.plan === "team", row?.plan);
+  check("the customer id was recorded", row?.stripeCustomerId === "cus_hook");
+  check("the subscription id was recorded", row?.stripeSubscriptionId === "sub_hook");
+  check("the email was recorded", row?.email === "hook@example.com");
+}
+
+// ---- the webhook: the period end lives on the subscription ITEM ----
+{
+  rows.subscribers.length = 0;
+  rows.subscribers.push({
+    $id: "row_period",
+    userId: "user_period",
+    plan: "pro",
+    status: "active",
+    stripeCustomerId: "cus_period",
+    stripeSubscriptionId: "sub_period",
+    email: "period@example.com",
+    currentPeriodEnd: null,
+  });
+
+  const out = await call(
+    makeWebhook({
+      type: "customer.subscription.created",
+      data: {
+        object: {
+          id: "sub_period",
+          customer: "cus_period",
+          status: "active",
+          metadata: { appwriteUserId: "user_period", plan: "pro" },
+          // Since API version 2025-03-31.basil the period end is on the
+          // item, not on the subscription.
+          items: {
+            data: [
+              {
+                current_period_end: 1795367101,
+                price: { id: "price_pro_monthly", metadata: { esim_plan: "pro" } },
+              },
+            ],
+          },
+          current_period_end: null,
+        },
+      },
+    })
+  );
+  check("a subscription event is accepted", out.status === 200);
+
+  const row = rows.subscribers.find((r) => r.userId === "user_period");
+  check(
+    "the period end is read from the subscription item",
+    row?.currentPeriodEnd === new Date(1795367101 * 1000).toISOString(),
+    String(row?.currentPeriodEnd)
+  );
+  check("the email was not blanked by the event", row?.email === "period@example.com");
+}
+
+// ---- the webhook: a cancellation ends the access ----
+{
+  rows.subscribers.length = 0;
+  rows.subscribers.push({
+    $id: "row_cancel",
+    userId: "user_cancel",
+    plan: "pro",
+    status: "active",
+    stripeCustomerId: "cus_cancel",
+    stripeSubscriptionId: "sub_cancel",
+    email: null,
+    currentPeriodEnd: null,
+  });
+
+  await call(
+    makeWebhook({
+      type: "customer.subscription.deleted",
+      data: {
+        object: {
+          id: "sub_cancel",
+          customer: "cus_cancel",
+          metadata: { appwriteUserId: "user_cancel" },
+        },
+      },
+    })
+  );
+
+  const row = rows.subscribers.find((r) => r.userId === "user_cancel");
+  check("a cancellation marks the record cancelled", row?.status === "cancelled", row?.status);
+
+  // And the access really is gone.
+  const ent = await call(makeReq({ path: "/entitlement", user: "user_cancel" }));
+  check("a cancelled subscriber has no access", ent.body?.active === false);
+}
+
+// ---- the portal ----
+{
+  // The webhook tests above replaced the fixture rows, so the portal test
+  // brings its own subscriber.
+  rows.subscribers.length = 0;
+  rows.subscribers.push({
+    $id: "row_portal",
+    userId: "user_portal",
+    plan: "pro",
+    status: "active",
+    stripeCustomerId: "cus_portal",
+    stripeSubscriptionId: "sub_portal",
+    email: "portal@example.com",
+    currentPeriodEnd: null,
+  });
+
+  const out = await call(makeReq({ method: "POST", path: "/portal", user: "user_portal" }));
+  check("a subscriber can open the portal", out.status === 200, JSON.stringify(out.body));
+  check("the portal returns a url", typeof out.body?.url === "string");
+  check(
+    "the portal uses the customer's Stripe id",
+    stripeCalls.at(-1)?.[1]?.customer === "cus_portal"
+  );
+
+  const anon = await call(makeReq({ method: "POST", path: "/portal" }));
+  check("an anonymous caller cannot open the portal", anon.status === 401);
+
+  // A signed-in user with no customer cannot open one either.
+  const none = await call(makeReq({ method: "POST", path: "/portal", user: "user_free" }));
+  check("a user with no Stripe customer gets no portal", none.status === 404);
+}
+
 console.log(`\n${passed} passed, ${failed} failed\n`);
 process.exit(failed > 0 ? 1 : 0);

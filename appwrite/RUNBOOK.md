@@ -16,11 +16,14 @@ housekeeping. Every command is run from the repository root.
 | Table `subscribers` | userId, plan, status, stripeCustomerId, stripeSubscriptionId, email, currentPeriodEnd |
 | Table `watchlist` | userId, destination |
 | Function | `premium-api`, node-22, deployed and active |
-| Function variables | SUBSCRIBERS_DATABASE_ID, SUBSCRIBERS_TABLE_ID, WATCHLIST_TABLE_ID, PUBLIC_SITE_URL, STRIPE_PRICE_PRO, STRIPE_PRICE_TEAM |
-| Function secret | ENTITLEMENT_SECRET |
-| Function scopes | rows.read/write, documents.read/write, tables.read/write, users.read, databases.read |
+| Function variables | SUBSCRIBERS_DATABASE_ID, SUBSCRIBERS_TABLE_ID, WATCHLIST_TABLE_ID, PUBLIC_SITE_URL |
+| Function secrets | ENTITLEMENT_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET |
 | Function execute permission | `["any"]` — see below |
 | Web platform | `youssef-benatti.me` — see below |
+| Function domain | `premium-api.fra.appwrite.run` — a proxy rule, see §4 |
+| Stripe account | `acct_1ROHGKCSuN5I79Kh` (NL) — see §4 |
+| Stripe prices | Pro $7/mo, $59/yr · Team $29/mo, $249/yr |
+| Stripe webhook | `https://premium-api.fra.appwrite.run/webhook` |
 | The site | built and deployed; the pricing page points at Appwrite, not the old Worker |
 
 The function is live and verified end to end: an authenticated caller gets
@@ -149,7 +152,7 @@ page and says where the next one starts:
 
 The response carries `rowCount`, `totalRows`, `hasMore` and `nextOffset`.
 
-## 4. Stripe
+## 4. Stripe — ✅ DONE
 
 ### The account
 
@@ -158,57 +161,66 @@ Payments, and not Stripe Managed Payments (the Merchant of Record product)
 either — the supported seller countries are CA, US, 35 European countries,
 AU, HK, JP and SG.
 
-Options, in order of preference:
+**This is solved:** the account in use is registered in the **Netherlands**
+(`acct_1ROHGKCSuN5I79Kh`). The alternatives, if the account ever has to
+change, are Stripe Atlas (~$500 once), a Merchant of Record that accepts
+Tunisia-based sellers (Lemon Squeezy, Gumroad), or a Tunisian entity.
 
-1. **Stripe Atlas** (~$500 once, ~$100/yr) — forms a Delaware C-corp
-   from anywhere in the world and the account can be opened immediately.
-   The code works against it as written.
-2. **Lemon Squeezy or Gumroad** — Merchants of Record that accept
-   Tunisia-based sellers. You lose the Stripe dashboard and API.
-3. **A Tunisian entity** that can contract with a provider.
+### The products, the prices and the webhook — one command
 
-### The products
+```bash
+STRIPE_SECRET_KEY=sk_live_... node scripts/stripe-setup.mjs
+```
 
-Create two recurring prices and paste their ids into
-`config/subscription.json`:
+The script is idempotent and it does everything:
+
+- creates the two products and their four recurring prices (Pro and Team,
+  monthly and yearly), reading the amounts from `config/subscription.json`
+  so the pricing page and the charge can never disagree;
+- creates the billing-portal configuration;
+- creates the webhook endpoint and stores its signing secret on the
+  function;
+- pushes the price ids and the secret key to the function;
+- writes the price ids back into `config/subscription.json`.
+
+**The secret key is never written to disk.** It is read from the
+environment and goes straight to the function as a secret variable.
+
+### The function's domain
+
+A function created through the CLI does not get a domain the way the
+console creates one, so the domain is a proxy rule:
+
+```bash
+appwrite proxy create-function-rule \
+  --domain premium-api.fra.appwrite.run --function-id premium-api
+```
+
+This is not a convenience. A request that arrives through the domain keeps
+its **raw body and its headers**, and a Stripe signature is computed over
+exactly those bytes. Through the Appwrite executions API the body is
+wrapped in an envelope, which would break the signature.
+
+The webhook listens on:
+
+```
+https://premium-api.fra.appwrite.run/webhook
+```
+
+### The signature is mandatory
+
+If `STRIPE_WEBHOOK_SECRET` is set, a request without a valid
+`stripe-signature` header is refused with a 400:
 
 ```json
-"stripe": {
-  "price_pro":  "price_...",
-  "price_team": "price_..."
-}
+{ "error": "missing_signature" }
 ```
 
-Then push them to the function:
+The webhook is a public URL, so accepting an unverified body would let
+anybody POST a forged event and grant themselves a subscription. A wrong
+signature is refused the same way, with `invalid_signature`.
 
-```bash
-appwrite functions create-variable --function-id premium-api \
-  --variable-id var_stripe_price_pro  --key STRIPE_PRICE_PRO  --value price_...
-appwrite functions create-variable --function-id premium-api \
-  --variable-id var_stripe_price_team --key STRIPE_PRICE_TEAM --value price_...
-```
-
-### The secrets
-
-```bash
-appwrite functions create-variable --function-id premium-api \
-  --variable-id var_stripe_secret_key \
-  --key STRIPE_SECRET_KEY --value sk_live_... --secret
-
-appwrite functions create-variable --function-id premium-api \
-  --variable-id var_stripe_webhook_secret \
-  --key STRIPE_WEBHOOK_SECRET --value whsec_... --secret
-```
-
-### The webhook
-
-Point a Stripe webhook at the function:
-
-```
-https://fra.cloud.appwrite.io/v1/functions/premium-api/executions
-```
-
-with the events:
+### The events
 
 - `checkout.session.completed`
 - `customer.subscription.created`
@@ -220,6 +232,14 @@ with the events:
 **Important:** the webhook needs the Appwrite user id, and it gets it from
 the Checkout Session's metadata, which the function sets from the signed-in
 user. The webhook is the only route that does not need a session.
+
+### The API version
+
+The function pins Stripe's API version to `2025-10-29.clover`, and
+`scripts/stripe-setup.mjs` uses the same one. They have to match, because
+the object SHAPES differ between versions: since `2025-03-31.basil`,
+`current_period_end` lives on the subscription's **item**, not on the
+subscription, so the function reads both.
 
 ## 5. Clean up
 

@@ -199,6 +199,33 @@
     });
   }
 
+  /**
+   * Create an account and sign in.
+   *
+   * There has to be a way to sign UP, not only to sign in: a visitor who
+   * has never bought anything has no account, and without one they could
+   * never subscribe at all.
+   *
+   * Appwrite creates the account and returns the user, but it does NOT
+   * open a session, so a sign-in follows immediately.
+   */
+  function signUp(email, password, name) {
+    var userId = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
+    return appwrite("/account", {
+      method: "POST",
+      body: { userId: userId, email: email, password: password, name: name },
+    }).then(function (result) {
+      if (!result.ok) {
+        return {
+          ok: false,
+          error: result.data?.message ?? "The account could not be created.",
+        };
+      }
+      return signIn(email, password);
+    });
+  }
+
   /** Call the premium function. */
   function call(path, options) {
     var opts = options || {};
@@ -220,7 +247,15 @@
       body: {
         path: path,
         method: opts.method || "GET",
-        body: opts.body ?? undefined,
+        // Appwrite requires the inner body to be a STRING. Sending an
+        // object is rejected with "Invalid `body` param: Value must be a
+        // valid string", so every POST would fail.
+        body:
+          opts.body === undefined || opts.body === null
+            ? undefined
+            : typeof opts.body === "string"
+              ? opts.body
+              : JSON.stringify(opts.body),
         headers: opts.headers ?? undefined,
       },
     }).then(function (result) {
@@ -262,62 +297,133 @@
   function renderAccountPanel(container) {
     if (!container) return;
 
+    // Coming back from Stripe: the payment has just been made, but the
+    // webhook that activates the subscription may still be in flight. The
+    // panel is re-rendered from the entitlement check, so a short wait
+    // followed by a reload is what the reader sees.
+    var params = new URLSearchParams(window.location.search);
+    var justCheckedOut = params.get("checkout") === "success";
+
     if (isSignedIn()) {
-      container.innerHTML =
-        '<div class="text-sm text-muted">Signed in. Checking your plan&hellip;</div>';
-      call("/entitlement").then(function (result) {
-        if (!result.ok) {
-          container.innerHTML =
-            '<div class="text-sm text-muted">Signed in, but the plan could not be checked. Try reloading.</div>';
-          return;
-        }
-        var data = result.data || {};
-        if (data.active) {
-          container.innerHTML =
-            '<div class="text-sm text-strong">You are on the <strong>' +
-            (data.plan || "free") +
-            "</strong> plan.</div>" +
-            '<button id="esimPortal" class="btn-ghost mt-3 px-4 py-2 text-sm font-semibold">Manage billing</button>';
-          var button = document.getElementById("esimPortal");
-          if (button) {
-            button.addEventListener("click", function () {
-              call("/portal", { method: "POST" }).then(function (res) {
-                if (res.ok && res.data?.url) window.location.href = res.data.url;
-              });
-            });
+      container.innerHTML = justCheckedOut
+        ? '<div class="text-sm text-muted">Payment received. Activating your subscription&hellip;</div>'
+        : '<div class="text-sm text-muted">Signed in. Checking your plan&hellip;</div>';
+
+      var attempts = 0;
+      var poll = function () {
+        call("/entitlement").then(function (result) {
+          if (!result.ok) {
+            container.innerHTML =
+              '<div class="text-sm text-muted">Signed in, but the plan could not be checked. Try reloading.</div>';
+            return;
           }
-        } else {
-          container.innerHTML =
-            '<div class="text-sm text-muted">Signed in, but there is no active subscription. Choose a plan below.</div>';
-        }
-      });
+          var data = result.data || {};
+          if (data.active) {
+            container.innerHTML =
+              '<div class="text-sm text-strong">You are on the <strong>' +
+              (data.plan || "free") +
+              "</strong> plan.</div>" +
+              '<button id="esimPortal" class="btn-ghost mt-3 px-4 py-2 text-sm font-semibold">Manage billing</button>';
+            var button = document.getElementById("esimPortal");
+            if (button) {
+              button.addEventListener("click", function () {
+                call("/portal", { method: "POST" }).then(function (res) {
+                  if (res.ok && res.data?.url) window.location.href = res.data.url;
+                });
+              });
+            }
+            return;
+          }
+
+          // Not active yet. Straight after a checkout the webhook may
+          // simply not have arrived, so it is worth waiting for it.
+          if (justCheckedOut && attempts < 6) {
+            attempts += 1;
+            window.setTimeout(poll, 1500);
+            return;
+          }
+
+          container.innerHTML = justCheckedOut
+            ? '<div class="text-sm text-muted">Your payment went through, but the subscription is not active yet. It usually takes a few seconds - reload this page in a moment.</div>'
+            : '<div class="text-sm text-muted">Signed in, but there is no active subscription. Choose a plan below.</div>';
+        });
+      };
+      poll();
       return;
     }
 
     container.innerHTML =
-      '<div class="text-sm text-muted">Already subscribed? Sign in to manage your plan.</div>' +
+      '<div class="text-sm text-muted">Create an account to subscribe, or sign in if you already have one.</div>' +
       '<form id="esimSignIn" class="mt-3 space-y-2">' +
       '<input id="esimEmail" type="email" required placeholder="you@example.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />' +
-      '<input id="esimPassword" type="password" required placeholder="Password" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />' +
+      '<input id="esimPassword" type="password" required minlength="8" placeholder="Password (at least 8 characters)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />' +
       '<button type="submit" class="btn-primary w-full px-4 py-2 text-sm font-semibold">Sign in</button>' +
       '<div id="esimSignInError" class="text-xs text-red-600"></div>' +
+      '<button type="button" id="esimShowSignUp" class="btn-ghost w-full px-4 py-2 text-sm font-semibold">Create an account</button>' +
+      "</form>" +
+      '<form id="esimSignUp" class="mt-3 space-y-2 hidden">' +
+      '<input id="esimName" type="text" required placeholder="Your name" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />' +
+      '<input id="esimUpEmail" type="email" required placeholder="you@example.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />' +
+      '<input id="esimUpPassword" type="password" required minlength="8" placeholder="Password (at least 8 characters)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />' +
+      '<button type="submit" class="btn-primary w-full px-4 py-2 text-sm font-semibold">Create the account</button>' +
+      '<div id="esimSignUpError" class="text-xs text-red-600"></div>' +
+      '<button type="button" id="esimShowSignIn" class="btn-ghost w-full px-4 py-2 text-sm font-semibold">I already have an account</button>' +
       "</form>";
 
     var form = document.getElementById("esimSignIn");
-    if (!form) return;
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      var email = document.getElementById("esimEmail").value;
-      var password = document.getElementById("esimPassword").value;
-      var error = document.getElementById("esimSignInError");
-      signIn(email, password).then(function (result) {
-        if (result.ok) {
-          renderAccountPanel(container);
-        } else {
-          error.textContent = result.error;
-        }
+    var upForm = document.getElementById("esimSignUp");
+
+    var showSignUp = document.getElementById("esimShowSignUp");
+    if (showSignUp) {
+      showSignUp.addEventListener("click", function () {
+        form.classList.add("hidden");
+        upForm.classList.remove("hidden");
+        var name = document.getElementById("esimName");
+        if (name) name.focus();
       });
-    });
+    }
+    var showSignIn = document.getElementById("esimShowSignIn");
+    if (showSignIn) {
+      showSignIn.addEventListener("click", function () {
+        upForm.classList.add("hidden");
+        form.classList.remove("hidden");
+        var email = document.getElementById("esimEmail");
+        if (email) email.focus();
+      });
+    }
+
+    if (form) {
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var email = document.getElementById("esimEmail").value;
+        var password = document.getElementById("esimPassword").value;
+        var error = document.getElementById("esimSignInError");
+        signIn(email, password).then(function (result) {
+          if (result.ok) {
+            renderAccountPanel(container);
+          } else {
+            error.textContent = result.error;
+          }
+        });
+      });
+    }
+
+    if (upForm) {
+      upForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var name = document.getElementById("esimName").value;
+        var email = document.getElementById("esimUpEmail").value;
+        var password = document.getElementById("esimUpPassword").value;
+        var error = document.getElementById("esimSignUpError");
+        signUp(email, password, name).then(function (result) {
+          if (result.ok) {
+            renderAccountPanel(container);
+          } else {
+            error.textContent = result.error;
+          }
+        });
+      });
+    }
   }
 
   /**
@@ -329,6 +435,7 @@
       button.addEventListener("click", function (event) {
         event.preventDefault();
         var plan = button.getAttribute("data-checkout-plan");
+        var period = button.getAttribute("data-checkout-period") || "monthly";
 
         if (!isSignedIn()) {
           // The buyer needs an account so the subscription can be tied to
@@ -342,7 +449,7 @@
           return;
         }
 
-        call("/checkout", { method: "POST", body: { plan: plan } }).then(
+        call("/checkout", { method: "POST", body: { plan: plan, period: period } }).then(
           function (result) {
             if (result.ok && result.data?.url) {
               window.location.href = result.data.url;

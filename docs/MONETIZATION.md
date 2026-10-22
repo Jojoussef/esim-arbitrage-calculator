@@ -99,14 +99,16 @@ Record product) will open an account for a Tunisia-based seller — the
 supported business locations are Canada, the US, 35 European countries, and
 Australia, Hong Kong, Japan and Singapore.
 
-Three ways forward, in order of preference:
+**This is solved.** The Stripe account in use is registered in the
+**Netherlands** (`acct_1ROHGKCSuN5I79Kh`), so the account itself is not a
+problem any more. Three ways forward, in order of preference, if the
+account ever has to change:
 
 1. **Stripe Atlas.** Forms a Delaware C-corp from anywhere in the world
    (~$500 once, then ~$100/year), and the account can be opened immediately.
-   This is the cleanest route to real Stripe, and it works with the code
-   as written. Because Stripe is then the merchant of record only if you
-   enable Managed Payments, you should either enable it (Stripe handles
-   VAT) or register for EU VAT with the OSS.
+   Because Stripe is then the merchant of record only if you enable Managed
+   Payments, you should either enable it (Stripe handles VAT) or register
+   for EU VAT with the OSS.
 2. **A Merchant of Record that accepts Tunisia-based sellers** — Lemon
    Squeezy or Gumroad. They keep the code, but you do not get a Stripe
    dashboard or the API.
@@ -114,10 +116,53 @@ Three ways forward, in order of preference:
    Slower, and it is your own legal problem.
 
 The code is written against the **standard Stripe API** (Checkout
-Sessions, Subscriptions, the customer portal, webhooks), so option 1 makes
-it work as-is. `config/subscription.json` has the two price ids to fill in.
+Sessions, Subscriptions, the customer portal, webhooks), so all three work
+with it as written.
 
-### The Stripe events the function handles
+### Setting Stripe up
+
+```bash
+STRIPE_SECRET_KEY=sk_live_... node scripts/stripe-setup.mjs
+```
+
+The script creates the products, the monthly and yearly prices, the
+billing-portal configuration and the webhook endpoint, pushes the price
+ids and the two secrets to the Appwrite Function, and writes the price ids
+back into `config/subscription.json`. It is idempotent, so it can be
+re-run safely.
+
+**The prices come from `config/subscription.json`**, so the amount on the
+pricing page and the amount Stripe charges are read from the same file and
+cannot drift apart.
+
+### The webhook
+
+The webhook is posted to the function's own domain:
+
+```
+https://premium-api.fra.appwrite.run/webhook
+```
+
+A function created through the CLI does not get a domain the way the
+console creates one, so the domain is a proxy rule:
+
+```bash
+appwrite proxy create-function-rule \
+  --domain premium-api.fra.appwrite.run --function-id premium-api
+```
+
+This matters for correctness, not just convenience: a request that arrives
+through the domain keeps its **raw body and its headers**, and a Stripe
+signature is computed over exactly those bytes. Through the Appwrite
+executions API the body is wrapped in an envelope, which would break the
+signature.
+
+**The signature is mandatory.** If `STRIPE_WEBHOOK_SECRET` is set, a
+request without a valid `stripe-signature` header is rejected with a 400.
+The webhook is a public URL, so accepting an unverified body would let
+anybody POST a forged event and grant themselves a subscription.
+
+The events the function handles:
 
 | Event | What it does |
 |---|---|
@@ -126,6 +171,12 @@ it work as-is. `config/subscription.json` has the two price ids to fill in.
 | `customer.subscription.deleted` | Marks the record cancelled, so access ends immediately. |
 | `invoice.paid` | Restores access after a failed payment is resolved. |
 | `invoice.payment_failed` | Marks the record `past_due`, so access pauses. |
+
+**One API-version detail that bites.** Since API version
+`2025-03-31.basil`, `current_period_end` lives on the subscription's
+*item*, not on the subscription. The function reads both, and the API
+version is pinned in the function and in `scripts/stripe-setup.mjs` so the
+two can never disagree.
 
 ### 1. Sponsorship — the secondary engine
 

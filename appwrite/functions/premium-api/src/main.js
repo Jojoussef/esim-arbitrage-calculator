@@ -83,14 +83,62 @@ function databaseFor(req) {
 
 /** The Stripe client. Only needed for the billing routes. */
 function stripe() {
+  // The test harness injects a stub, so the billing logic can be tested
+  // without a network call or a real Stripe account. It is a global
+  // rather than an environment variable on purpose: Node coerces every
+  // `process.env` value to a string, so an object injected that way would
+  // silently become "[object Object]".
+  if (globalThis.__APPWRITE_TEST_STRIPE) return globalThis.__APPWRITE_TEST_STRIPE;
+
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return null;
   return new Stripe(key, {
     // The Stripe API version is pinned so a dashboard-side change can
     // never silently alter the shape of the objects we read.
+    //
+    // It must match the version scripts/stripe-setup.mjs uses to create
+    // the prices and the webhook, because the SHAPE of a subscription
+    // differs between versions: `current_period_end` moved from the
+    // subscription to its item in 2025-03-31.basil.
     apiVersion: "2025-10-29.clover",
     typescript: true,
   });
+}
+
+/**
+ * The Stripe price id for a plan and a billing period.
+ *
+ * The yearly prices exist because the pricing page advertises "or $59/year",
+ * so a plan has two prices and the caller has to say which one it wants.
+ */
+function priceFor(plan, period) {
+  const key =
+    plan === "team"
+      ? period === "yearly"
+        ? "STRIPE_PRICE_TEAM_YEARLY"
+        : "STRIPE_PRICE_TEAM"
+      : period === "yearly"
+        ? "STRIPE_PRICE_PRO_YEARLY"
+        : "STRIPE_PRICE_PRO";
+
+  const value = process.env[key];
+  // A placeholder means "not set up yet", and offering it to Stripe would
+  // fail at the checkout - so it is treated as absent.
+  if (!value || value.startsWith("price_replace_me")) return null;
+  return value;
+}
+
+/**
+ * The caller's Appwrite user id, or null.
+ *
+ * This is the IDENTITY check, and it is deliberately weaker than
+ * `resolveEntitlement`: it only proves WHO is calling, not WHAT they paid
+ * for. The billing routes need exactly this - a customer who has never
+ * subscribed has no record at all, so demanding an active subscription
+ * there would mean nobody could ever buy one.
+ */
+function sessionUserId(req) {
+  return userId(req);
 }
 
 /* ------------------------------------------------------------- helpers -- */
@@ -422,13 +470,13 @@ async function handleWatch(req, res, tables) {
 
 /** POST /checkout - create a Stripe Checkout session. */
 async function handleCheckout(req, res, tables) {
-  const ent = await resolveEntitlement(req, tables);
-  if (!ent.ok) {
-    return json(
-      res,
-      { error: "subscription_required", reason: ent.reason },
-      ent.status ?? 402
-    );
+  // A checkout only needs IDENTITY, not an existing subscription: the
+  // customer buying here is by definition someone who has NOT subscribed
+  // yet. Demanding an active subscription would make it impossible to
+  // become a subscriber in the first place.
+  const appwriteUserId = sessionUserId(req);
+  if (!appwriteUserId) {
+    return json(res, { error: "sign_in_required" }, 401);
   }
 
   const client_ = stripe();
@@ -436,13 +484,25 @@ async function handleCheckout(req, res, tables) {
     return json(res, { error: "billing_not_configured" }, 503);
   }
 
-  const { plan, email, successUrl, cancelUrl } = body(req);
-  const key = String(plan ?? "pro").toUpperCase();
-  const priceId = process.env[`STRIPE_PRICE_${key}`] ?? process.env.STRIPE_PRICE_PRO;
+  // The caller does not get to choose the price, the return URL or the
+  // metadata - only the plan and the billing period.
+  const { plan, period, email } = body(req);
+  const key = String(plan ?? "pro").toLowerCase();
+  if (!PLANS[key] || key === "free") {
+    return json(res, { error: "unknown_plan" }, 400);
+  }
 
+  const cadence = period === "yearly" ? "yearly" : "monthly";
+  const priceId = priceFor(key, cadence);
   if (!priceId) {
     return json(res, { error: "unknown_plan" }, 400);
   }
+
+  // The site is the only thing allowed to send the browser to Stripe, so
+  // the return URLs are pinned to the site's own origin. A caller-supplied
+  // URL would turn the checkout into an open redirect.
+  const site = String(process.env.PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
+  const pricingUrl = `${site}/esim-arbitrage-calculator/pricing/`;
 
   const session = await client_.checkout.sessions.create({
     mode: "subscription",
@@ -450,32 +510,32 @@ async function handleCheckout(req, res, tables) {
     customer_email: email ?? undefined,
     // The Appwrite user id travels with the subscription, so the webhook
     // can link the two without asking the user to match an email.
-    client_reference_id: ent.userId,
-    success_url:
-      successUrl ??
-      `${process.env.PUBLIC_SITE_URL}/esim-arbitrage-calculator/pricing/?checkout=success`,
-    cancel_url:
-      cancelUrl ??
-      `${process.env.PUBLIC_SITE_URL}/esim-arbitrage-calculator/pricing/?checkout=cancelled`,
+    client_reference_id: appwriteUserId,
+    success_url: `${pricingUrl}?checkout=success`,
+    cancel_url: `${pricingUrl}?checkout=cancelled`,
     subscription_data: {
-      metadata: { appwriteUserId: ent.userId, plan: key.toLowerCase() },
+      metadata: { appwriteUserId, plan: key, period: cadence },
     },
-    metadata: { appwriteUserId: ent.userId, plan: key.toLowerCase() },
+    metadata: { appwriteUserId, plan: key, period: cadence },
     allow_promotion_codes: true,
   });
 
-  return json(res, { url: session.url, sessionId: session.id });
+  return json(res, {
+    url: session.url,
+    sessionId: session.id,
+    plan: key,
+    period: cadence,
+  });
 }
 
 /** POST /portal - create a Stripe customer portal session. */
 async function handlePortal(req, res, tables) {
-  const ent = await resolveEntitlement(req, tables);
-  if (!ent.ok) {
-    return json(
-      res,
-      { error: "subscription_required", reason: ent.reason },
-      ent.status ?? 402
-    );
+  // The portal is for someone who ALREADY has a customer record, so the
+  // session is enough - but the record has to exist, otherwise there is no
+  // customer to open a portal for.
+  const appwriteUserId = sessionUserId(req);
+  if (!appwriteUserId) {
+    return json(res, { error: "sign_in_required" }, 401);
   }
 
   const client_ = stripe();
@@ -483,16 +543,16 @@ async function handlePortal(req, res, tables) {
     return json(res, { error: "billing_not_configured" }, 503);
   }
 
-  const customerId = ent.row?.stripeCustomerId;
+  const row = await findSubscription(tables, appwriteUserId);
+  const customerId = row?.stripeCustomerId;
   if (!customerId) {
     return json(res, { error: "no_customer" }, 404);
   }
 
+  const site = String(process.env.PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
   const session = await client_.billingPortal.sessions.create({
     customer: customerId,
-    return_url:
-      body(req).returnUrl ??
-      `${process.env.PUBLIC_SITE_URL}/esim-arbitrage-calculator/pricing/`,
+    return_url: `${site}/esim-arbitrage-calculator/pricing/`,
   });
 
   return json(res, { url: session.url });
@@ -519,11 +579,21 @@ async function handleWebhook(req, res, tables) {
 
   let event;
   try {
-    if (secret && signature) {
+    if (secret) {
       // Stripe signs the RAW body. Re-serialising the parsed JSON would
       // change the bytes and break the signature.
+      //
+      // A missing signature is a FAILURE, not a reason to fall through to
+      // an unsigned parse: the webhook is a public endpoint, so accepting
+      // an unverified body would let anyone POST a forged event and grant
+      // themselves a subscription.
+      if (!signature) {
+        return json(res, { error: "missing_signature" }, 400);
+      }
       event = client_.webhooks.constructEvent(raw, signature, secret);
     } else {
+      // Only reachable when the webhook secret has not been set up yet.
+      // Stripe's own events still work, but nothing is verified.
       event = JSON.parse(raw);
     }
   } catch {
@@ -553,19 +623,19 @@ async function handleWebhook(req, res, tables) {
     case "customer.subscription.updated": {
       const appwriteUserId = object.metadata?.appwriteUserId;
       if (!appwriteUserId) break;
+
+      const item = object.items?.data?.[0];
       await upsertSubscription(tables, {
         userId: appwriteUserId,
         customerId: object.customer,
         subscriptionId: object.id,
-        plan: planFromPrice(object.items?.data?.[0]?.price?.id),
+        plan: planFromPrice(item?.price),
         status:
           object.status === "active" || object.status === "trialing"
             ? "active"
             : object.status,
         email: null,
-        currentPeriodEnd: object.current_period_end
-          ? new Date(object.current_period_end * 1000).toISOString()
-          : null,
+        currentPeriodEnd: periodEndOf(object, item),
       });
       break;
     }
@@ -573,6 +643,8 @@ async function handleWebhook(req, res, tables) {
     case "customer.subscription.deleted": {
       const appwriteUserId = object.metadata?.appwriteUserId;
       if (!appwriteUserId) break;
+      // The access ends HERE, not when the period ends - the pricing page
+      // promises exactly that.
       await setStatus(tables, appwriteUserId, "cancelled");
       break;
     }
@@ -583,7 +655,31 @@ async function handleWebhook(req, res, tables) {
     }
 
     case "invoice.paid": {
-      if (object.customer) await setStatusByCustomer(tables, object.customer, "active");
+      // A paid invoice is a renewal, so the new period end is worth
+      // recording. The invoice carries the subscription it is for, and
+      // that subscription's item carries the period end.
+      if (!object.customer) break;
+
+      const subscriptionId =
+        typeof object.subscription === "string"
+          ? object.subscription
+          : object.subscription?.id ?? null;
+
+      let periodEnd = null;
+      if (subscriptionId) {
+        const client_ = stripe();
+        if (client_) {
+          try {
+            const subscription = await client_.subscriptions.retrieve(subscriptionId);
+            periodEnd = periodEndOf(subscription, subscription.items?.data?.[0]);
+          } catch {
+            // The subscription may already be gone. The status update
+            // below still matters, so this is not fatal.
+          }
+        }
+      }
+
+      await setStatusByCustomer(tables, object.customer, "active", periodEnd);
       break;
     }
 
@@ -595,12 +691,42 @@ async function handleWebhook(req, res, tables) {
   return json(res, { received: true, type: event.type });
 }
 
-/** Which plan does a Stripe price belong to? */
-function planFromPrice(priceId) {
-  if (!priceId) return "pro";
-  if (priceId === process.env.STRIPE_PRICE_TEAM) return "team";
-  if (priceId === process.env.STRIPE_PRICE_PRO) return "pro";
+/**
+ * Which plan does a Stripe price belong to?
+ *
+ * The price's own metadata is the source of truth, because the price ids
+ * are different for the monthly and the yearly cadence of the same plan.
+ * The environment variables are the fallback for a price created by hand.
+ */
+function planFromPrice(price) {
+  const id = typeof price === "string" ? price : price?.id;
+  const meta = typeof price === "string" ? null : price?.metadata;
+
+  if (meta?.esim_plan === "team" || meta?.plan === "team") return "team";
+  if (meta?.esim_plan === "pro" || meta?.plan === "pro") return "pro";
+
+  const team = [process.env.STRIPE_PRICE_TEAM, process.env.STRIPE_PRICE_TEAM_YEARLY];
+  const pro = [process.env.STRIPE_PRICE_PRO, process.env.STRIPE_PRICE_PRO_YEARLY];
+
+  if (id && team.includes(id)) return "team";
+  if (id && pro.includes(id)) return "pro";
   return "pro";
+}
+
+/**
+ * When the current billing period ends.
+ *
+ * Since API version 2025-03-31.basil the field lives on the subscription's
+ * ITEM, not on the subscription itself, so both are read. Without this the
+ * period end would always be null on a modern API version.
+ */
+function periodEndOf(subscription, item) {
+  const seconds =
+    item?.current_period_end ??
+    subscription?.current_period_end ??
+    null;
+
+  return seconds ? new Date(seconds * 1000).toISOString() : null;
 }
 
 /** Create or update the subscriber record. */
@@ -613,16 +739,6 @@ async function upsertSubscription(tables, {
   email,
   currentPeriodEnd,
 }) {
-  const data = {
-    userId,
-    plan: PLANS[plan] ?? "pro",
-    status,
-    stripeCustomerId: customerId ?? null,
-    stripeSubscriptionId: subscriptionId ?? null,
-    email: email ?? null,
-    currentPeriodEnd,
-  };
-
   const existing = await tables.listRows({
     databaseId: DB(),
     tableId: SUBSCRIBERS_TABLE(),
@@ -632,14 +748,33 @@ async function upsertSubscription(tables, {
     ],
   });
 
-  if (existing.rows.length > 0) {
+  const row = existing.rows[0] ?? null;
+
+  // A field that this event does not know about is KEPT, not blanked.
+  //
+  // Stripe sends several events for one purchase, and they do not all
+  // carry the same details: `checkout.session.completed` knows the email
+  // but not the period end, while `customer.subscription.created` knows
+  // the period end but not the email. Writing null for what an event does
+  // not know would erase what another event already told us.
+  const data = {
+    userId,
+    plan: PLANS[plan] ?? row?.plan ?? "pro",
+    status: status ?? row?.status ?? "active",
+    stripeCustomerId: customerId ?? row?.stripeCustomerId ?? null,
+    stripeSubscriptionId: subscriptionId ?? row?.stripeSubscriptionId ?? null,
+    email: email ?? row?.email ?? null,
+    currentPeriodEnd: currentPeriodEnd ?? row?.currentPeriodEnd ?? null,
+  };
+
+  if (row) {
     await tables.updateRow({
       databaseId: DB(),
       tableId: SUBSCRIBERS_TABLE(),
-      rowId: existing.rows[0].$id,
+      rowId: row.$id,
       data,
     });
-    return existing.rows[0].$id;
+    return row.$id;
   }
 
   const created = await tables.createRow({
@@ -673,7 +808,7 @@ async function setStatus(tables, userId, status) {
 }
 
 /** Set the status of a subscriber record, found by Stripe customer id. */
-async function setStatusByCustomer(tables, customerId, status) {
+async function setStatusByCustomer(tables, customerId, status, currentPeriodEnd = null) {
   const existing = await tables.listRows({
     databaseId: DB(),
     tableId: SUBSCRIBERS_TABLE(),
@@ -688,7 +823,12 @@ async function setStatusByCustomer(tables, customerId, status) {
       databaseId: DB(),
       tableId: SUBSCRIBERS_TABLE(),
       rowId: row.$id,
-      data: { status },
+      data: {
+        status,
+        // The period end is only written when it is known, so an invoice
+        // that cannot be resolved does not blank the stored value.
+        ...(currentPeriodEnd ? { currentPeriodEnd } : {}),
+      },
     });
   }
 }

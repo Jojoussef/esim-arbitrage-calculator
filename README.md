@@ -124,12 +124,18 @@ sends a user id it could have made up. The subscriber record is the source
 of truth for the plan, so a client cannot upgrade itself by editing a
 field, and a cancelled subscription loses access immediately.
 
-**⚠️ Stripe does not support Tunisia-based businesses.** Neither standard
-Stripe Payments nor Managed Payments will open an account for a
-Tunisia-registered seller. The code is written against the standard Stripe
-API, so the practical route is **Stripe Atlas** (~$500 once, then ~$100/yr,
-forms a Delaware C-corp from anywhere). See `docs/MONETIZATION.md` for
-the alternatives and the full reasoning.
+**✅ Stripe is set up and working.** The account in use is registered in the
+**Netherlands** (`acct_1ROHGKCSuN5I79Kh`), so the Tunisia-registered-seller
+problem is resolved. The products, the prices, the billing portal and the
+webhook are all created by one command:
+
+```bash
+STRIPE_SECRET_KEY=sk_live_... node scripts/stripe-setup.mjs
+```
+
+The webhook listens on `https://premium-api.fra.appwrite.run/webhook` and
+**refuses any request without a valid Stripe signature**, because it is a
+public URL. See `docs/MONETIZATION.md` for the full reasoning.
 
 **The pieces:**
 
@@ -138,8 +144,9 @@ the alternatives and the full reasoning.
 | The function | `appwrite/functions/premium-api/` |
 | The database access (hand-rolled REST) | `appwrite/functions/premium-api/src/db.js` |
 | Provisioning | `scripts/appwrite-setup.mjs` |
+| Stripe provisioning | `scripts/stripe-setup.mjs` |
 | Deployment | `scripts/appwrite-deploy.mjs` |
-| Local tests (37 assertions) | `scripts/test-appwrite-function.mjs` |
+| Local tests (97 assertions) | `scripts/test-appwrite-function.mjs` |
 | The client | `src/assets/subscription.js` |
 | The pricing page | `scripts/lib/pages-subscription.mjs` → `/pricing/` |
 

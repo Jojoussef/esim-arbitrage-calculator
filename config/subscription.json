@@ -55,12 +55,24 @@
   },
   "stripe": {
     "_comment": [
-      "The Stripe price ids for each plan. Create the products and",
-      "recurring prices in the Stripe dashboard, then paste the ids here.",
-      "The function reads them as STRIPE_PRICE_PRO and STRIPE_PRICE_TEAM."
+      "The Stripe price ids for each plan and billing period. These are",
+      "written by scripts/stripe-setup.mjs, which creates the products and",
+      "the recurring prices in Stripe and then pushes the ids to the",
+      "function. The function reads them as STRIPE_PRICE_PRO,",
+      "STRIPE_PRICE_PRO_YEARLY, STRIPE_PRICE_TEAM and",
+      "STRIPE_PRICE_TEAM_YEARLY.",
+      "",
+      "The secret key and the webhook signing secret are NOT here: they",
+      "live on the Appwrite Function as secret variables, because a secret",
+      "in a file that is committed to git is not a secret."
     ],
-    "price_pro": "",
-    "price_team": ""
+    "currency": "usd",
+    "price_pro": "price_1UTPlxCSuN5I79KheWik1r6f",
+    "price_pro_yearly": "price_1UTPlyCSuN5I79KhG9a5o5y5",
+    "price_team": "price_1UTPlzCSuN5I79KhZBgeoGOc",
+    "price_team_yearly": "price_1UTPlzCSuN5I79KhZyRSHOt6",
+    "webhook_url": "https://premium-api.fra.appwrite.run/webhook",
+    "portal_configuration_id": "bpc_1UTPS3CSuN5I79KhvJOxKttP"
   },
   "api_base_url": "",
   "checkout_url": "https://youssef-benatti.me/esim-arbitrage-calculator/pricing/",
@@ -111,7 +123,12 @@
       "referral asset depends on the calculator being completely free, and",
       "a paywalled calculator ranks far worse."
     ],
-    "hide": ["data_export", "pricing_error_monitor", "price_alerts", "api"]
+    "hide": [
+      "data_export",
+      "pricing_error_monitor",
+      "price_alerts",
+      "api"
+    ]
   },
   "entitlement": {
     "cookie": "esim_sub",

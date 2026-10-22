@@ -343,7 +343,22 @@ if (monetization) {
     for (const plan of ["pro", "team"]) {
       if (!subscription.stripe?.[`price_${plan}`]) {
         warn(`the Stripe price for the ${plan} plan is not set yet`);
+      } else {
+        ok(`the Stripe price for the ${plan} plan is set`);
       }
+      // The pricing page advertises the yearly price, so it has to be
+      // purchasable - otherwise the page promises something that cannot
+      // be bought.
+      if (!subscription.stripe?.[`price_${plan}_yearly`]) {
+        warn(`the yearly Stripe price for the ${plan} plan is not set yet`);
+      } else {
+        ok(`the yearly Stripe price for the ${plan} plan is set`);
+      }
+    }
+    if (!subscription.stripe?.webhook_url) {
+      warn("the Stripe webhook url is not set yet");
+    } else {
+      ok("the Stripe webhook url is set");
     }
   }
 

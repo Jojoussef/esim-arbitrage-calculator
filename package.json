@@ -12,6 +12,10 @@
     "validate": "node scripts/validate.mjs",
     "check:dns": "node scripts/check-dns.mjs",
     "social": "node scripts/social-posts.mjs",
+    "setup:appwrite": "node scripts/appwrite-setup.mjs",
+    "setup:stripe": "node scripts/stripe-setup.mjs",
+    "deploy:fn": "node scripts/build-appwrite-function.mjs && node scripts/appwrite-deploy.mjs",
+    "test": "node scripts/test-entitlement.mjs && node scripts/test-appwrite-function.mjs",
     "deploy": "node scripts/build.mjs && node scripts/deploy.mjs"
   },
   "engines": {

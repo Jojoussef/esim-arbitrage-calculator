@@ -31,6 +31,15 @@ export function buildPricingPage({ site, stats, subscription }) {
         ? `$${plan.price_monthly}<span class="text-xs font-normal text-muted">/mo</span>`
         : "Free";
 
+      // Both cadences are purchasable, so the card carries the price for
+      // each and the buttons say which one they buy. The yearly prices are
+      // what the page has always advertised as "or $59/year", so they have
+      // to be real - a promise the checkout cannot keep is worse than no
+      // promise at all.
+      const yearlyPrice = plan.price_yearly
+        ? `$${plan.price_yearly}<span class="text-xs font-normal text-muted">/year</span>`
+        : "";
+
       // The paid plans start a Stripe Checkout session through the
       // function, so the button carries the plan it is for.
       return `<div class="card p-5 sm:p-6 flex flex-col ${isPro ? "border-2 border-accent" : ""}">
@@ -41,14 +50,18 @@ export function buildPricingPage({ site, stats, subscription }) {
         <div class="text-3xl font-extrabold text-brand mt-3">${price}</div>
         ${
           plan.price_yearly
-            ? `<div class="text-xs text-muted mt-1">or $${plan.price_yearly}/year</div>`
+            ? `<div class="text-xs text-muted mt-1">or ${yearlyPrice}</div>`
             : `<div class="text-xs text-muted mt-1">forever</div>`
         }
         <ul class="mt-4 space-y-2 flex-1">${features}</ul>
         ${
           key === "free"
             ? `<a href="${esc(url(site, "/"))}" class="btn-ghost mt-5 block text-center text-sm font-semibold px-5 py-2.5 transition">Start free</a>`
-            : `<button type="button" data-checkout-plan="${esc(key)}" class="${isPro ? "btn-accent" : "btn-primary"} mt-5 block w-full text-center text-sm font-semibold px-5 py-2.5 transition">Subscribe</button>`
+            : `<button type="button" data-checkout-plan="${esc(key)}" data-checkout-period="monthly" class="${isPro ? "btn-accent" : "btn-primary"} mt-5 block w-full text-center text-sm font-semibold px-5 py-2.5 transition">Subscribe monthly</button>${
+                plan.price_yearly
+                  ? `<button type="button" data-checkout-plan="${esc(key)}" data-checkout-period="yearly" class="btn-ghost mt-2 block w-full text-center text-sm font-semibold px-5 py-2.5 transition">Subscribe yearly &mdash; $${plan.price_yearly}/year</button>`
+                  : ""
+              }`
         }
       </div>`;
     })

@@ -30,6 +30,15 @@ const SUBSCRIBERS_TABLE = "subscribers";
 const WATCHLIST_TABLE = "watchlist";
 const FUNCTION_ID = "premium-api";
 
+/**
+ * The function's public domain.
+ *
+ * The Stripe webhook is posted to this hostname, so the request reaches
+ * the function with its path, headers and raw body intact - a Stripe
+ * signature is computed over exactly those bytes.
+ */
+const FUNCTION_DOMAIN = "premium-api.fra.appwrite.run";
+
 /** Run an appwrite CLI command. */
 function aw(args, { tolerateFailure = false } = {}) {
   console.log(`  $ appwrite ${args.join(" ")}`);
@@ -239,14 +248,31 @@ aw(
   { tolerateFailure: true }
 );
 
-console.log("\n5. the function's variables");
+// ---- the function's public domain ----
+// A function created through the CLI does NOT get a domain the way the
+// console creates one, and the Stripe webhook needs a URL it can POST to.
+// A proxy rule gives the function its own hostname, and the request then
+// reaches the function with its path, headers and RAW body intact - which
+// is what a Stripe signature is computed over.
+console.log("\n6. the function's domain");
+aw(
+  [
+    "proxy",
+    "create-function-rule",
+    "--domain",
+    FUNCTION_DOMAIN,
+    "--function-id",
+    FUNCTION_ID,
+  ],
+  { tolerateFailure: true }
+);
+
+console.log("\n7. the function's variables");
 const variables = [
   ["SUBSCRIBERS_DATABASE_ID", DATABASE_ID],
   ["SUBSCRIBERS_TABLE_ID", SUBSCRIBERS_TABLE],
   ["WATCHLIST_TABLE_ID", WATCHLIST_TABLE],
   ["PUBLIC_SITE_URL", "https://youssef-benatti.me"],
-  ["STRIPE_PRICE_PRO", "price_replace_me"],
-  ["STRIPE_PRICE_TEAM", "price_replace_me"],
 ];
 
 for (const [key, value] of variables) {
@@ -269,14 +295,13 @@ for (const [key, value] of variables) {
 
 console.log(
   "\nDone.\n\n" +
-    "Next, set the secrets (these are NOT set by this script, because a\n" +
+    "Next, set the entitlement secret (it is NOT set by this script, because a\n" +
     "secret can only be created once and can never be read back):\n\n" +
     "  appwrite functions create-variable --function-id premium-api \\\n" +
-    "    --variable-key ENTITLEMENT_SECRET --variable-value <random> --secret\n" +
-    "  appwrite functions create-variable --function-id premium-api \\\n" +
-    "    --variable-key STRIPE_SECRET_KEY --variable-value sk_live_... --secret\n" +
-    "  appwrite functions create-variable --function-id premium-api \\\n" +
-    "    --variable-key STRIPE_WEBHOOK_SECRET --variable-value whsec_... --secret\n\n" +
+    "    --variable-key ENTITLEMENT_SECRET --variable-value <random> --secret\n\n" +
+    "Then set up Stripe, which creates the prices and the webhook and pushes\n" +
+    "its own secrets to the function:\n\n" +
+    "  STRIPE_SECRET_KEY=sk_... node scripts/stripe-setup.mjs\n\n" +
     "Then build and deploy:\n\n" +
     "  node scripts/build-appwrite-function.mjs\n" +
     "  node scripts/appwrite-deploy.mjs\n"
