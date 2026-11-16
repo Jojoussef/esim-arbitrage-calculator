@@ -48,6 +48,7 @@ jobs:
       - name: Test the Appwrite function
         run: |
           npm --prefix appwrite/functions/premium-api install --no-audit --no-fund
+          node scripts/build-appwrite-function.mjs
           node scripts/test-appwrite-function.mjs
 
       - name: Check monetisation & SEO invariants
